@@ -1,0 +1,60 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #f4f4f5;
+}
+
+.login-container .card {
+    width: 450px;
+    padding: 2rem;
+    border: none;
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== HEADER ===== */
+.login-container .card-header {
+    border: none;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2rem;
+}
+
+
+/* ===== FORM ===== */
+.login-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.login-container .form-row {
+    display: flex;
+    align-items: center;
+}
+
+.login-container .form-row label {
+    min-width: 80px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1d2128;
+    margin: 0;
+}
+
+/* ===== INPUT ===== */
+.login-container .form-row .form-control {
+    flex: 1;
+    height: 46px;
+    border-radius: 0.6rem;
+    border: 1px solid #d1d5db;
+    padding: 0 0.8rem;
+    font-size: 0.95rem;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+

@@ -1,0 +1,39 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  /* background: rgb(226, 226, 226); */
+}
+
+button {
+  cursor: pointer;
+  border-radius: 0.6rem;
+  border: none;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  height: 46px;
+}
+
+
+.button:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+input {
+  border-radius: 0.6rem;
+  border: 1px solid #e5e7eb;
+  padding: 0 0.8rem;
+  height: 48px;
+  font-size: 0.95rem;
+}
