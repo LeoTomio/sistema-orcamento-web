@@ -3,6 +3,7 @@ import { Button, Card, Container, Form } from "react-bootstrap"
 import "../../styles/login.css"
 import { useAuth } from "../../context/AuthContext"
 import { useLoading } from "../../context/LoadingContext"
+import { Clipboard2 } from "react-bootstrap-icons"
 
 const Login = () => {
     const { signIn } = useAuth()
@@ -30,22 +31,29 @@ const Login = () => {
     return (
         <Container fluid className="login-container">
             <Card>
-                <Card.Header>Meu orçamento</Card.Header>
+                <div className="home-icon">
+                    <div className="icon-circle">
+                        <Clipboard2 size={36} />
+                    </div>
+                </div>
+
+                <Card.Header>Seu Orçamento</Card.Header>
+                <p className="text-center">Faça login para acessar o sistema</p>
                 <Card.Body>
                     <Form onSubmit={handleLogin}>
-
-                        <Form.Group className="form-row">
+                        <Form.Group >
                             <Form.Label>Email</Form.Label>
                             <Form.Control
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                placeholder="seu@email.com"
                                 required
                             />
                         </Form.Group>
 
-                        <Form.Group className="form-row">
+                        <Form.Group >
                             <Form.Label>Senha</Form.Label>
                             <Form.Control
                                 type="password"
@@ -53,10 +61,11 @@ const Login = () => {
                                 value={formData.password}
                                 onChange={handleChange}
                                 required
+                                placeholder="********"
                             />
                         </Form.Group>
 
-                        <Button type="submit" className="w-100">
+                        <Button type="submit" className="w-100 submitButton">
                             Entrar
                         </Button>
 

@@ -8,9 +8,8 @@ export interface BudgetItem {
 }
 
 export interface Budget {
-    id: string;
+    id?: string;
     clientName: string;
     items: BudgetItem[];
     total: number;
-    createdAt: Date;
 }

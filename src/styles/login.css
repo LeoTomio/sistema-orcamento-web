@@ -7,38 +7,57 @@
 }
 
 .login-container .card {
-    width: 450px;
-    padding: 2rem;
+    width: 400px;
+    padding: 1rem;
     border: none;
     border-radius: 1rem;
     background: #ffffff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* ===== HEADER ===== */
+.login-container .home-icon {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.login-container .icon-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #eef2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container .icon-circle svg {
+    color: #5b5fc7;
+}
+
 .login-container .card-header {
+    padding-block: 0px;
     border: none;
     text-align: center;
     font-size: 2rem;
     font-weight: 600;
     color: #111827;
-    margin-bottom: 2rem;
+    background-color: transparent;
 }
 
+.login-container p {
+    font-size: .9rem;
+    color: #6f7072;
+}
 
 /* ===== FORM ===== */
 .login-container form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
-.login-container .form-row {
-    display: flex;
-    align-items: center;
-}
-
-.login-container .form-row label {
+.login-container label {
     min-width: 80px;
     font-size: 0.9rem;
     font-weight: 500;
@@ -47,14 +66,10 @@
 }
 
 /* ===== INPUT ===== */
-.login-container .form-row .form-control {
+.login-container .form-control {
     flex: 1;
-    height: 46px;
     border-radius: 0.6rem;
     border: 1px solid #d1d5db;
     padding: 0 0.8rem;
     font-size: 0.95rem;
-    background: #fafafa;
-    transition: all 0.2s ease;
 }
-

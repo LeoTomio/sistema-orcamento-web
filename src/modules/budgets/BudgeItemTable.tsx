@@ -1,67 +1,69 @@
-import { Table, Button, Form } from "react-bootstrap";
+import { Button, Form, Table } from "react-bootstrap";
+import { formatMoney } from "../../utils/formaters";
 import type { BudgetItem } from "./BudgetType";
 
 interface Props {
     items: BudgetItem[];
-    setItems: React.Dispatch<React.SetStateAction<BudgetItem[]>>;
+    onChangeItems: (items: BudgetItem[]) => void;
 }
 
-export default function BudgetItemTable({ items, setItems }: Props) {
+export default function BudgetItemTable({ items, onChangeItems }: Props) {
 
     const updateItem = (index: number, field: string, value: any) => {
         const updated = [...items];
-        (updated[index] as any)[field] = value;
-        setItems(updated);
+        (updated[index] as any)[field] = Number(value);
+        onChangeItems(updated);
     };
 
-    const removeItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
+    const removeItem = (item: BudgetItem) => {
+        const newItemsList = items.filter((i) => i.productId !== item.productId)
+        onChangeItems(newItemsList);
     };
 
     return (
-        <Table bordered>
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Preço</th>
-                    <th>Quantidade</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                {items.map((item, index) => (
-                    <tr key={index}>
-                        <td>{item.name}</td>
-                        <td>
-                            <Form.Control
-                                type="number"
-                                value={item.price}
-                                onChange={(e) =>
-                                    updateItem(index, "price", Number(e.target.value))
-                                }
-                            />
-                        </td>
-                        <td>
-                            <Form.Control
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) =>
-                                    updateItem(index, "quantity", Number(e.target.value))
-                                }
-                            />
-                        </td>
-                        <td>
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => removeItem(index)}
-                            >
-                                Excluir
-                            </Button>
-                        </td>
+        <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+            <Table bordered>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th className="text-center">Preço (R$)</th>
+                        <th className="text-center">Quantidade</th>
+                        <th className="text-center">Sub-total (R$)</th>
+                        <th className="text-center">Ação</th>
                     </tr>
-                ))}
-            </tbody>
-        </Table>
+                </thead>
+                <tbody className="">
+                    {items.map((item, index) => (
+                        <tr key={index} >
+                            <td className="align-content-center text-center">{item.name}</td>
+                            <td className="align-content-center text-center">
+                                <Form.Control
+                                    type="number"
+                                    value={item.price}
+                                    onChange={(e) => updateItem(index, "price", e.target.value)}
+                                />
+                            </td>
+                            <td className="align-content-center text-center">
+                                <Form.Control
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                                />
+                            </td>
+                            <td className="align-content-center text-center">{formatMoney(item.price * item.quantity)}</td>
+                            <td className="align-content-center text-center">
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => removeItem(item)}
+                                >
+                                    Excluir
+                                </Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+        </div>
     );
 }

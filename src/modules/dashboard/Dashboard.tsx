@@ -11,10 +11,7 @@ const Dashboard = () => {
 
     return (
         <>
-            {/* Header */}
             <NavBar />
-
-            {/* Conteúdo */}
             <Container className="py-4" style={{ maxWidth: "900px" }}>
                 <Tabs
                     activeKey={activeTab}
