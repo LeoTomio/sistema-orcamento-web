@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useLoading } from "../../context/LoadingContext";
 import { formatMoney } from "../../utils/formaters";
-import productService from "../products/productService";
-import type { Product } from "../products/ProductType";
-import BudgetItemTable from "./BudgeItemTable";
-import budgetService from "./budgetService";
-import type { Budget } from "./BudgetType";
-import ProductModal from "../products/ProductModal";
+import productService from "../products/Service";
+import type { Product } from "../products/types";
+import BudgetItemTable from "./ItemTable";
+import BudgetService from "./Service";
+import type { Budget } from "./types";
+import ProductModal from "../products/Modal";
 
 interface Props {
   show: boolean;
@@ -22,7 +22,7 @@ interface Props {
 export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }: Props) {
   const { endLoading, startLoading } = useLoading();
   const [formData, setFormData] = useState<Budget>({
-    clientName: "",
+    client_name: "",
     items: [],
     total: 0,
   })
@@ -38,16 +38,20 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   }, []);
 
   const loadProducts = async () => {
-    const response = await productService.getToSelect();
+    const response = await productService.getAll();
 
-    setProducts(response);
+    setProducts(response.data);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { clientName, items } = formData
-    if (!clientName) {
+    const { client_name, items } = formData
+    if (!client_name) {
       toast.warning('Campo cliente é obrigatório')
+      return
+    }
+    if (client_name.length < 3) {
+      toast.warning('Campo cliente deve ter ao menos 3 caracteres')
       return
     }
     if (items.length == 0) {
@@ -58,10 +62,12 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
     try {
       startLoading()
+
+      console.log('formdata', formData)
       if (selectedBudget) {
-        budgetService.update(formData)
+        await BudgetService.update(formData)
       } else {
-        budgetService.create({
+        await BudgetService.create({
           ...formData,
           id: uuid(),
         });
@@ -89,11 +95,36 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   };
 
   useEffect(() => {
-    if (selectedBudget) {
-      setFormData(selectedBudget);
-    } else {
+    if (!selectedBudget) {
       clearForm()
+      return
     }
+
+    const getBudget = async () => {
+      try {
+        const response = await BudgetService.getById(selectedBudget.id!)
+        setFormData({
+          id: response.id,
+          client_name: response.client_name,
+          total: Number(response.total),
+          items: response.items.map((item) => ({
+            id: item.id,
+            productId: item.product.id,
+            name: item.product.name,
+            price: Number(item.price),
+            quantity: item.quantity
+          }))
+        });
+      } catch (error) {
+        console.error(error);
+        toast.error("Erro ao carregar orçamento");
+      } finally {
+        endLoading();
+      }
+    }
+    getBudget()
+    setFormData(selectedBudget);
+
   }, [selectedBudget]);
 
   const handleAddProduct = (productId: string) => {
@@ -116,7 +147,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
   const clearForm = () => {
     setFormData({
-      clientName: "",
+      client_name: "",
       items: [],
       total: 0,
     })
@@ -124,7 +155,11 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
   return (
     <>
-      <Modal show={show} onHide={onClose} size="lg">
+      <Modal
+        centered
+        show={show}
+        onHide={onClose}
+        size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Novo Orçamento</Modal.Title>
         </Modal.Header>
@@ -134,8 +169,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
             <Form.Group className="mb-3">
               <Form.Label>Nome do Cliente</Form.Label>
               <Form.Control
-                name="clientName"
-                value={formData.clientName}
+                name="client_name"
+                value={formData.client_name}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -173,10 +208,12 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
             <hr className="mt-5" />
             <Table>
-              <thead>
-                <th>Total</th>
-                <td className="text-end"> R$ {formatMoney(formData.items.reduce((acc, item) => acc + (item.price * item.quantity), 0))}</td>
-              </thead>
+              <tbody>
+                <tr className="borderless">
+                  <td>Total</td>
+                  <td className="text-end"> R$ {formatMoney(formData.items.reduce((acc, item) => acc + (item.price * item.quantity), 0))}</td>
+                </tr>
+              </tbody>
             </Table>
           </Modal.Body>
 

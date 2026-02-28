@@ -5,9 +5,9 @@ import { FiletypePdf, PencilFill, TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
-import BudgetModal from "./BudgetModal";
-import budgetService from "./budgetService";
-import type { Budget } from "./BudgetType";
+import BudgetModal from "./Modal";
+import BudgetService from "./Service";
+import type { Budget } from "./types";
 
 
 export default function Budgets() {
@@ -20,16 +20,13 @@ export default function Budgets() {
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const itemsPerPage = 5;
-
     useEffect(() => {
         loadBudgets(currentPage);
     }, [currentPage]);
 
 
     const loadBudgets = async (page: number) => {
-        const response = await budgetService.getAll({ page, limit: itemsPerPage });
-
+        const response = await BudgetService.getAll({ page });
         setBudgets(response.data);
         setTotalItems(response.total);
     };
@@ -37,7 +34,7 @@ export default function Budgets() {
     const handleDelete = async () => {
         if (!selectedBudget) return;
 
-        await budgetService.delete(selectedBudget.id!);
+        await BudgetService.delete(selectedBudget.id!);
 
         // Se excluir o último item da página
         if (budgets.length === 1 && currentPage > 1) {
@@ -107,7 +104,7 @@ export default function Budgets() {
                         <tbody>
                             {budgets.map(b => (
                                 <tr key={b.id}>
-                                    <td>{b.clientName}</td>
+                                    <td>{b.client_name}</td>
                                     <td className="text-center">{Number(b.total).toFixed(2)}</td>
                                     <td className="text-center">
                                         <div className="d-flex justify-content-center gap-2 px-2">
@@ -162,7 +159,7 @@ export default function Budgets() {
             <ConfirmModal
                 show={openDeleteModal}
                 title="Confirmar Exclusão"
-                message={`Deseja excluir o orçamento "${selectedBudget?.clientName}"?`}
+                message={`Deseja excluir o orçamento "${selectedBudget?.client_name}"?`}
                 onConfirm={handleDelete}
                 onCancel={() => {
                     setSelectedBudget(null);

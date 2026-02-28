@@ -1,6 +1,6 @@
 import { Button, Form, Table } from "react-bootstrap";
 import { formatMoney } from "../../utils/formaters";
-import type { BudgetItem } from "./BudgetType";
+import type { BudgetItem } from "./types";
 
 interface Props {
     items: BudgetItem[];

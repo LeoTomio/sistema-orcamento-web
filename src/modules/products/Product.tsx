@@ -4,9 +4,9 @@ import { PencilFill, TrashFill } from 'react-bootstrap-icons';
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
-import ProductModal from "./ProductModal";
-import productService from "./productService";
-import type { Product } from "./ProductType";
+import ProductModal from "./Modal";
+import productService from "./Service";
+import type { Product } from "./types";
 
 function Products() {
 
@@ -18,14 +18,13 @@ function Products() {
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const itemsPerPage = 5;
-
     useEffect(() => {
         loadProducts(currentPage);
     }, [currentPage]);
 
-    const loadProducts = async (page: number) => {
-        const response = await productService.getAll({ page, limit: itemsPerPage });
+    const loadProducts = async (page: number = 1) => {
+        console.log(page)
+        const response = await productService.getAll(page);
 
         setProducts(response.data);
         setTotalItems(response.total);
@@ -85,7 +84,7 @@ function Products() {
                         </thead>
 
                         <tbody>
-                            {products.map((p) => (
+                            {!!products.length && products.map((p) => (
                                 <tr key={p.id}>
                                     <td>{p.name}</td>
                                     <td className="text-center">
@@ -95,7 +94,7 @@ function Products() {
                                         <div className="d-flex justify-content-center gap-2">
                                             <PencilFill
                                                 size="1.5rem"
-                                                color="blue"
+                                                color="#87d86e"
                                                 role="button"
                                                 onClick={() => handleEdit(p)}
                                             />

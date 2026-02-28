@@ -4,8 +4,8 @@ import { X } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useLoading } from "../../context/LoadingContext";
-import productService from "./productService";
-import type { Product } from "./ProductType";
+import productService from "./Service";
+import type { Product } from "./types";
 
 interface Props {
     show: boolean,
@@ -85,38 +85,35 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
         <Modal
             centered
             show={show}
-            contentClassName="p-3 mb-3"
             onHide={onClose}>
-            <Row>
-                <Col sm={10}>
-                    <h5>{selectedProduct ? "Editar Produto" : "Cadastrar Produto"}</h5>
-                </Col>
-                <Col sm={2} className="d-flex justify-content-center">
-                    <X size='2rem' className="x-icon" onClick={handleClose} />
-                </Col>
-            </Row>
+            <Modal.Header closeButton>
+                <Modal.Title>{selectedProduct ? "Editar Produto" : "Cadastrar Produto"}</Modal.Title>
+            </Modal.Header>
             <Form className="mt-2" onSubmit={handleSubmit}>
-                <Form.Group className="mb-2">
-                    <Form.Label>Nome</Form.Label>
-                    <Form.Control
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                    />
-                </Form.Group>
+                <Modal.Body>
+                    <Form.Group className="mb-2">
+                        <Form.Label>Nome</Form.Label>
+                        <Form.Control
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
 
-                <Form.Group className="mb-2">
-                    <Form.Label>Preço</Form.Label>
-                    <Form.Control
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                    />
-                </Form.Group>
+                    <Form.Group className="mb-2">
+                        <Form.Label>Preço</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
 
-                <Button className="submitButton w-100 mt-2" type="submit">Salvar</Button>
-            </Form>
-        </Modal>
+                    <Button className="submitButton w-100 mt-2" type="submit">Salvar</Button>
+
+                </Modal.Body>
+            </Form >
+        </Modal >
     );
 }

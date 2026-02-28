@@ -117,3 +117,8 @@ input {
     display: none;
   }
 }
+
+.borderless{
+  border-color: transparent;
+}
+
