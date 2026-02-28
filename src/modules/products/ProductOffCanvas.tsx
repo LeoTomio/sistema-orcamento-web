@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react";
-import { Modal } from "react-bootstrap";
+import { Offcanvas } from "react-bootstrap";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useLoading } from "../../context/LoadingContext";
@@ -12,10 +12,14 @@ interface Props {
     onClose: () => void;
     selectedProduct: Product | null;
     onSuccess: () => void;
-    isFromBudget?: boolean
 }
 
-export default function ProductModal({ onClose, show, selectedProduct, onSuccess, isFromBudget }: Props) {
+export default function ProductOffcanvas({
+    show,
+    onClose,
+    selectedProduct,
+    onSuccess,
+}: Props) {
     const { endLoading, startLoading } = useLoading();
     const [formData, setFormData] = useState<Product>({
         name: "",
@@ -82,24 +86,24 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
     };
 
     return (
-        <Modal centered
+        <Offcanvas
             show={show}
             onHide={onClose}
-            dialogClassName="product-modal"
-            backdrop={isFromBudget ? false : "static"}>
-            <Modal.Header closeButton>
-                <Modal.Title>
+            placement="end"
+            style={{ zIndex: 9999 }}>
+            <Offcanvas.Header closeButton>
+                <Offcanvas.Title>
                     {selectedProduct ? "Editar Produto" : "Cadastrar Produto"}
-                </Modal.Title>
-            </Modal.Header>
+                </Offcanvas.Title>
+            </Offcanvas.Header>
 
-            <Modal.Body>
+            <Offcanvas.Body>
                 <ProductForm
                     formData={formData}
                     onChange={handleChange}
                     onSubmit={handleSubmit}
                 />
-            </Modal.Body>
-        </Modal>
+            </Offcanvas.Body>
+        </Offcanvas>
     );
 }

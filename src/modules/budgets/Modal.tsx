@@ -10,6 +10,7 @@ import type { Product } from "../products/types";
 import BudgetItemTable from "./ItemTable";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
+import ProductOffcanvas from "../products/ProductOffCanvas";
 import ProductModal from "../products/Modal";
 
 interface Props {
@@ -159,7 +160,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         centered
         show={show}
         onHide={onClose}
-        size="lg">
+        size="lg"
+        contentClassName={openProductModal ? "budget-with-overlay" : ""}>
         <Modal.Header closeButton>
           <Modal.Title>Novo Orçamento</Modal.Title>
         </Modal.Header>
@@ -238,6 +240,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
             `Produto adicionado com sucesso!`
           );
         }}
+        isFromBudget={true}
       />
     </>
   );

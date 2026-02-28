@@ -122,3 +122,19 @@ input {
   border-color: transparent;
 }
 
+.product-modal {
+  z-index: 2000 !important;
+}
+
+.budget-with-overlay {
+  position: relative;
+}
+
+.budget-with-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5); /* intensidade do escuro */
+  border-radius: inherit;
+  z-index: 10;
+}
