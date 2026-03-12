@@ -17,7 +17,6 @@ const BudgetService = {
         return data
     },
     async update(budget: Budget) {
-        console.log('bud', budget.id)
         const { data } = await api.patch(`/budget/${budget.id}`, budget);
         return data
     },
@@ -25,6 +24,11 @@ const BudgetService = {
         const { data } = await api.delete(`/budget/${id}`);
         return data
     },
+
+    async generatePdf(id: any) {
+        const { data } = await api.get(`/budget/pdf/${id}`);
+        return data
+    }
 };
 
 export default BudgetService

@@ -1,17 +1,18 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
 import { Plus } from "react-bootstrap-icons";
 import { toast } from "sonner";
-import { v4 as uuid } from "uuid";
+import CustomSelect from "../../components/CustomSelect";
 import { useLoading } from "../../context/LoadingContext";
 import { formatMoney } from "../../utils/formaters";
+import ClientModal from "../clients/Modal";
+import ClientService from "../clients/Service";
+import ProductModal from "../products/Modal";
 import productService from "../products/Service";
 import type { Product } from "../products/types";
 import BudgetItemTable from "./ItemTable";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
-import ProductOffcanvas from "../products/ProductOffCanvas";
-import ProductModal from "../products/Modal";
 
 interface Props {
   show: boolean;
@@ -23,19 +24,28 @@ interface Props {
 export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }: Props) {
   const { endLoading, startLoading } = useLoading();
   const [formData, setFormData] = useState<Budget>({
-    client_name: "",
+    clientId: "",
     items: [],
     total: 0,
   })
   const [products, setProducts] = useState<Product[]>([]);
   const [openProductModal, setOpenProductModal] = useState(false);
 
-  const availableProducts = products.filter(
-    p => !formData.items.some(i => i.productId === p.id)
-  );
+  const [openClientModal, setOpenClientModal] = useState(false);
+  const [clientList, setClientList] = useState<{ value: string, label: string }[]>([])
+
+  const availableProducts = products
+    .filter((p) => !formData.items.some((i) => i.productId === p.id))
+    .map((p) => ({
+      value: p.id!,
+      label: p.name
+    }))
+    .sort((a: any, b: any) => a.label.localeCompare(b.label));
+
 
   useEffect(() => {
     loadProducts();
+    loadClients()
   }, []);
 
   const loadProducts = async () => {
@@ -44,15 +54,20 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     setProducts(response.data);
   };
 
+  const loadClients = async () => {
+    const response = await ClientService.getAll();
+    const clientOptions = response.data.map((p) => ({
+      value: p.id!,
+      label: p.name
+    })).sort((a: any, b: any) => a.label.localeCompare(b.label));
+    setClientList(clientOptions);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { client_name, items } = formData
-    if (!client_name) {
+    const { clientId, items } = formData
+    if (!clientId) {
       toast.warning('Campo cliente é obrigatório')
-      return
-    }
-    if (client_name.length < 3) {
-      toast.warning('Campo cliente deve ter ao menos 3 caracteres')
       return
     }
     if (items.length == 0) {
@@ -63,15 +78,10 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
     try {
       startLoading()
-
-      console.log('formdata', formData)
       if (selectedBudget) {
         await BudgetService.update(formData)
       } else {
-        await BudgetService.create({
-          ...formData,
-          id: uuid(),
-        });
+        await BudgetService.create(formData);
       }
       onSuccess()
       clearForm()
@@ -83,16 +93,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     }
   };
   const handleClose = () => {
+    clearForm();
     onClose();
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === "price" ? Number(value) : value
-    }));
   };
 
   useEffect(() => {
@@ -106,7 +108,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         const response = await BudgetService.getById(selectedBudget.id!)
         setFormData({
           id: response.id,
-          client_name: response.client_name,
+          clientId: response.clientId,
           total: Number(response.total),
           items: response.items.map((item) => ({
             id: item.id,
@@ -124,8 +126,6 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       }
     }
     getBudget()
-    setFormData(selectedBudget);
-
   }, [selectedBudget]);
 
   const handleAddProduct = (productId: string) => {
@@ -146,9 +146,19 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     }));
   };
 
+  const handleAddClient = (clientId: string) => {
+    const client = clientList.find(c => c.value === clientId);
+    if (!client) return;
+
+    setFormData(prev => ({
+      ...prev,
+      clientId: client.value!,
+    }));
+  };
+
   const clearForm = () => {
     setFormData({
-      client_name: "",
+      clientId: "",
       items: [],
       total: 0,
     })
@@ -159,39 +169,51 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       <Modal
         centered
         show={show}
-        onHide={onClose}
+        onHide={handleClose}
         size="lg"
-        contentClassName={openProductModal ? "budget-with-overlay" : ""}>
+        contentClassName={openProductModal || openClientModal ? "budget-with-overlay" : ""}>
         <Modal.Header closeButton>
-          <Modal.Title>Novo Orçamento</Modal.Title>
+          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento </Modal.Title>
         </Modal.Header>
 
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Nome do Cliente</Form.Label>
-              <Form.Control
-                name="client_name"
-                value={formData.client_name}
-                onChange={handleChange}
-              />
+              <Row>
+                <Col xs={10} md={`${selectedBudget ? 12 : 11}`}>
+                  <CustomSelect
+                    options={clientList}
+                    value={formData.clientId}
+                    onChange={(value) => {
+                      if (value) handleAddClient(String(value));
+                    }}
+                    disabled={!!selectedBudget}
+                  />
+                </Col>
+                {!selectedBudget && <Col xs={2} md={1} className="ps-0">
+                  <Button>
+                    <Plus size="1.5rem" onClick={() => setOpenClientModal(true)} />
+                  </Button>
+                </Col>}
+              </Row>
+
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Produto</Form.Label>
               <Row >
                 <Col xs={10} md={11}>
-                  <Form.Select onChange={(e) => handleAddProduct(e.target.value)}>
-                    <option value="">Selecione</option>
-                    {availableProducts.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </Form.Select>
+                  <CustomSelect
+                    options={availableProducts}
+                    onChange={(value) => {
+                      if (value) handleAddProduct(String(value));
+                    }}
+                    clearOnSelect
+                  />
                 </Col>
                 <Col xs={2} md={1} className="ps-0">
-                  <Button   >
+                  <Button>
                     <Plus size="1.5rem" onClick={() => setOpenProductModal(true)} />
                   </Button>
                 </Col>
@@ -224,7 +246,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
               Cancelar
             </Button>
             <Button type="submit">
-              Salvar Orçamento
+              Salvar
             </Button>
           </Modal.Footer>
         </Form>
@@ -237,11 +259,25 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         onSuccess={() => {
           loadProducts();
           toast.success(
-            `Produto adicionado com sucesso!`
+            "Produto adicionado com sucesso!"
           );
         }}
         isFromBudget={true}
       />
+
+      <ClientModal
+        show={openClientModal}
+        onClose={() => setOpenClientModal(false)}
+        selectedClient={null}
+        onSuccess={() => {
+          loadClients();
+          toast.success(
+            "Cliente adicionado com sucesso!"
+          );
+        }}
+        isFromBudget={true}
+      />
+
     </>
   );
 }

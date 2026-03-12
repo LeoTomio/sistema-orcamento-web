@@ -4,10 +4,6 @@
   box-sizing: border-box;
 }
 
-body {
-  /* background: rgb(226, 226, 226); */
-}
-
 button {
   cursor: pointer;
   border-radius: 0.6rem;
@@ -99,7 +95,7 @@ input {
     padding: 0.2rem !important;
   }
 
-  svg{
+  svg {
     width: 1.3rem !important;
     height: 1.3rem !important;
   }
@@ -118,7 +114,7 @@ input {
   }
 }
 
-.borderless{
+.borderless {
   border-color: transparent;
 }
 
@@ -134,7 +130,8 @@ input {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5); /* intensidade do escuro */
+  background: rgba(0, 0, 0, 0.5);
+  /* intensidade do escuro */
   border-radius: inherit;
   z-index: 10;
 }

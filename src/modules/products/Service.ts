@@ -4,7 +4,6 @@ import type { Product } from "./types";
 
 const productService = {
     async getAll(page?: number): Promise<PaginatedResponse<Product>> {
-        console.log('paginas', page)
         const response = await api.get("/product", { params: { page } });
 
         return response.data;

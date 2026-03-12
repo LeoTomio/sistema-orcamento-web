@@ -7,7 +7,8 @@ export interface BudgetItem {
 
 export interface Budget {
     id?: string;
-    client_name: string;
+    clientId: string;
+    client?: { name: string }
     items: BudgetItem[];
     total: number;
 }
@@ -24,7 +25,7 @@ export interface BudgetItemFromApi {
 
 export interface BudgetFromApi {
     id: string;
-    client_name: string;
+    clientId: string;
     total: number;
     items: BudgetItemFromApi[];
 }

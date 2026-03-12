@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
+import ClientService from "./Service";
+import type { Client } from "./types";
 import { Button, Card, Col, Row, Table } from "react-bootstrap";
-import { PencilFill, TrashFill } from 'react-bootstrap-icons';
-import { toast } from "sonner";
-import ConfirmModal from "../../components/ConfirmModal";
+import { PencilFill, TrashFill } from "react-bootstrap-icons";
 import PaginationComponent from "../../components/Pagination";
-import ProductModal from "./Modal";
-import productService from "./Service";
-import type { Product } from "./types";
+import ConfirmModal from "../../components/ConfirmModal";
+import { toast } from "sonner";
+import ClientModal from "./Modal";
+import { formatDocument } from "../../utils/formaters";
 
-function Products() {
+function Clients() {
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [clients, setClients] = useState<Client[]>([]);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -19,34 +20,32 @@ function Products() {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        loadProducts(currentPage);
+        loadClients(currentPage);
     }, [currentPage]);
 
-    const loadProducts = async (page: number = 1) => {
-        const response = await productService.getAll(page);
-        setProducts(response.data);
+    const loadClients = async (page: number = 1) => {
+        const response = await ClientService.getAll(page);
+        setClients(response.data);
         setTotalItems(response.total);
     };
 
     const handleDelete = async () => {
-        if (!selectedProduct) return;
+        if (!selectedClient) return;
+        await ClientService.delete(selectedClient.id!);
 
-        await productService.delete(selectedProduct.id!);
-
-        // Se excluir o último item da página
-        if (products.length === 1 && currentPage > 1) {
+        if (clients.length === 1 && currentPage > 1) {
             setCurrentPage(prev => prev - 1);
         } else {
-            loadProducts(currentPage);
+            loadClients(currentPage);
         }
 
-        setSelectedProduct(null);
+        setSelectedClient(null);
         setOpenDeleteModal(false);
-        toast.success("Produto excluído com sucesso!");
+        toast.success("Cliente excluído com sucesso!");
     };
 
-    const handleEdit = (product: Product) => {
-        setSelectedProduct(product);
+    const handleEdit = (product: Client) => {
+        setSelectedClient(product);
         setOpenModal(true);
     };
 
@@ -55,14 +54,14 @@ function Products() {
             <Card className="p-3 mb-4">
                 <Row className="align-items-center mb-4">
                     <Col sm={8}>
-                        <h5 className="mb-0">Produtos Cadastrados</h5>
+                        <h5 className="mb-0">Clientes Cadastrados</h5>
                     </Col>
 
                     <Col sm={4} className="text-end">
                         <Button
                             className="submitButton"
                             onClick={() => {
-                                setSelectedProduct(null);
+                                setSelectedClient(null);
                                 setOpenModal(true);
                             }}
                         >
@@ -75,18 +74,18 @@ function Products() {
                     <Table bordered hover className="align-middle">
                         <thead>
                             <tr>
-                                <th>Produto</th>
-                                <th className="text-center" style={{ width: "20%", whiteSpace: "nowrap" }}>Preço (R$)</th>
+                                <th>Cliente</th>
+                                <th className="text-center" style={{ width: "20%", whiteSpace: "nowrap" }}>CPF/CNPJ</th>
                                 <th className="text-center" style={{ width: "10%", whiteSpace: "nowrap" }}>Ações</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {!!products.length && products.map((p) => (
-                                <tr key={p.id}>
-                                    <td>{p.name}</td>
+                            {clients.length > 0 && clients.map((c) => (
+                                <tr key={c.id}>
+                                    <td>{c.name}</td>
                                     <td className="text-center">
-                                        {Number(p.price).toFixed(2)}
+                                        {formatDocument(c.document)}
                                     </td>
                                     <td className="text-center">
                                         <div className="d-flex justify-content-center gap-2">
@@ -94,7 +93,7 @@ function Products() {
                                                 size="1.5rem"
                                                 color="#87d86e"
                                                 role="button"
-                                                onClick={() => handleEdit(p)}
+                                                onClick={() => handleEdit(c)}
                                             />
 
                                             <TrashFill
@@ -102,7 +101,7 @@ function Products() {
                                                 color="red"
                                                 role="button"
                                                 onClick={() => {
-                                                    setSelectedProduct(p);
+                                                    setSelectedClient(c);
                                                     setOpenDeleteModal(true);
                                                 }}
                                             />
@@ -121,14 +120,14 @@ function Products() {
                 </div>
             </Card>
 
-            <ProductModal
+            <ClientModal
                 show={openModal}
                 onClose={() => setOpenModal(false)}
-                selectedProduct={selectedProduct}
+                selectedClient={selectedClient}
                 onSuccess={() => {
-                    loadProducts(currentPage);
+                    loadClients(currentPage);
                     toast.success(
-                        `Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`
+                        `Cliente ${selectedClient ? "alterado" : "adicionado"} com sucesso!`
                     );
                 }}
             />
@@ -136,10 +135,10 @@ function Products() {
             <ConfirmModal
                 show={openDeleteModal}
                 title="Confirmar Exclusão"
-                message={`Deseja excluir o produto "${selectedProduct?.name}"?`}
+                message={`Deseja excluir o produto "${selectedClient?.name}"?`}
                 onConfirm={handleDelete}
                 onCancel={() => {
-                    setSelectedProduct(null);
+                    setSelectedClient(null);
                     setOpenDeleteModal(false);
                 }}
             />
@@ -147,4 +146,4 @@ function Products() {
     );
 }
 
-export default Products;
+export default Clients

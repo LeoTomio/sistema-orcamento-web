@@ -1,4 +1,3 @@
-import jsPDF from "jspdf";
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Row, Table } from "react-bootstrap";
 import { FiletypePdf, PencilFill, TrashFill } from "react-bootstrap-icons";
@@ -27,6 +26,7 @@ export default function Budgets() {
 
     const loadBudgets = async (page: number) => {
         const response = await BudgetService.getAll({ page });
+        console.log('lista', response.data)
         setBudgets(response.data);
         setTotalItems(response.total);
     };
@@ -53,24 +53,8 @@ export default function Budgets() {
         setOpenModal(true);
     };
 
-    const generatePDF = (budget: any) => {
-        const doc = new jsPDF();
-
-        doc.text(`Cliente: ${budget.clientName}`, 10, 10);
-
-        let y = 20;
-        budget.items.forEach((item: any) => {
-            doc.text(
-                `${item.name} - ${item.quantity} x ${item.price}`,
-                10,
-                y
-            );
-            y += 10;
-        });
-
-        doc.text(`Total: R$ ${budget.total}`, 10, y + 10);
-
-        doc.save(`orcamento-${budget.clientName}.pdf`);
+    const generatePDF = async (budget: any) => {
+        await BudgetService.generatePdf(budget.id!);
     };
 
     return (
@@ -104,7 +88,7 @@ export default function Budgets() {
                         <tbody>
                             {budgets.map(b => (
                                 <tr key={b.id}>
-                                    <td>{b.client_name}</td>
+                                    <td>{b.client?.name}</td>
                                     <td className="text-center">{Number(b.total).toFixed(2)}</td>
                                     <td className="text-center">
                                         <div className="d-flex justify-content-center gap-2 px-2">
@@ -159,7 +143,7 @@ export default function Budgets() {
             <ConfirmModal
                 show={openDeleteModal}
                 title="Confirmar Exclusão"
-                message={`Deseja excluir o orçamento "${selectedBudget?.client_name}"?`}
+                message={`Deseja excluir este orçamento?`}
                 onConfirm={handleDelete}
                 onCancel={() => {
                     setSelectedBudget(null);
