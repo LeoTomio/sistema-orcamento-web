@@ -7,7 +7,6 @@ import PaginationComponent from "../../components/Pagination";
 import BudgetModal from "./Modal";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
-import { statusConverter } from "../../utils/formaters";
 
 
 export default function Budgets() {

@@ -147,3 +147,28 @@ input {
   align-items: center;
   justify-content: center;
 }
+
+
+.subscribe-modal {
+  border: 1px solid #ccc;
+  width: 100%;
+  max-width: 500px
+}
+
+
+@media (max-width: 768px) {
+  .dashboard-tabs .nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  .dashboard-tabs .nav-item {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+
+  .dashboard-tabs .nav-link {
+    width: 100%;
+    text-align: center;
+  }
+}

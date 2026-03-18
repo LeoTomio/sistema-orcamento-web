@@ -13,7 +13,6 @@ import type { ProductForm } from "../products/types";
 import BudgetItemTable from "./ItemTable";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
-
 interface Props {
   show: boolean;
   onClose: () => void;
@@ -33,6 +32,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
   const [openClientModal, setOpenClientModal] = useState(false);
   const [clientList, setClientList] = useState<{ value: string, label: string }[]>([])
+
 
   const availableProducts = products
     .filter((p) => !formData.items.some((i) => i.productId === p.id))
@@ -283,7 +283,6 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         }}
         isFromBudget={true}
       />
-
     </>
   );
 }

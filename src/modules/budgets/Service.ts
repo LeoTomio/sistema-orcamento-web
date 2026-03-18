@@ -29,7 +29,6 @@ const BudgetService = {
         const response = await api.get(`/budget/pdf/${id}`, {
             responseType: "blob"
         });
-
         return response.data;
     }
 };

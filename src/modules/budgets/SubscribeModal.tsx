@@ -1,0 +1,77 @@
+import { useRef } from "react";
+import SignatureCanvas from "react-signature-canvas";
+import { toast } from "sonner";
+import { useLoading } from "../../context/LoadingContext";
+import userService from "../user/Service";
+import { Button, Modal } from "react-bootstrap";
+
+interface SignatureModalProps {
+    show: boolean
+    onClose: () => void
+}
+
+export function SignatureModal({ show, onClose }: SignatureModalProps) {
+    const { endLoading, startLoading } = useLoading()
+    const sigCanvas = useRef<SignatureCanvas | null>(null);
+
+    const handleClear = () => {
+        sigCanvas.current?.clear();
+    };
+
+    const handleSave = async () => {
+        if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
+            toast.warning("Assine antes de salvar.");
+            return;
+        }
+        try {
+            startLoading()
+            const base64 = sigCanvas.current
+                .getCanvas()
+                .toDataURL("image/png");
+
+
+            await userService.updateSignature(base64);
+            toast.success("Assinatura salva com sucesso!");
+            onClose();
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar assinatura.");
+        } finally {
+            endLoading()
+        }
+    }
+    return (
+        <Modal
+            show={show}
+            onHide={() => onClose()}
+            centered
+        >
+            <Modal.Header closeButton>
+                <Modal.Title>Assinatura</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+                <div className="subscribe-modal">
+                    <SignatureCanvas
+                        ref={sigCanvas}
+                        penColor="black"
+                        canvasProps={{
+                            width: 465,
+                            height: 100,
+                            className: "signature-canvas",
+                        }}
+                    />
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClear}>
+                    Limpar
+                </Button>
+                <Button variant="primary" onClick={handleSave}>
+                    Salvar
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+}
+

@@ -1,0 +1,18 @@
+.app-navbar .brand-nowrap,
+.app-navbar .nav-actions {
+    white-space: nowrap;
+}
+
+.app-navbar .nav-actions {
+    flex-wrap: nowrap !important;
+}
+
+.app-navbar .user-email {
+    white-space: nowrap;
+}
+
+@media (max-width: 991px) {
+    .app-navbar .user-email {
+        display: none;
+    }
+}

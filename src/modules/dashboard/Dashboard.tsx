@@ -8,19 +8,16 @@ import Footer from "../../components/Footer";
 import Users from "../user/User";
 
 const Dashboard = () => {
-
-    const [activeTab, setActiveTab] = useState<string>("users");
-
+    const [activeTab, setActiveTab] = useState<string>("user");
 
     return (
-
         <div className="d-flex flex-column min-vh-100">
             <NavBar />
             <Container className="py-4 flex-grow-1" style={{ maxWidth: "900px" }}>
                 <Tabs
                     activeKey={activeTab}
                     onSelect={(k) => setActiveTab(k!)}
-                    className="mb-3"
+                    className="mb-3 dashboard-tabs"
                     justify
                     mountOnEnter
                     unmountOnExit
@@ -28,20 +25,18 @@ const Dashboard = () => {
                     <Tab eventKey="budgets" title="Orçamentos">
                         <Budget />
                     </Tab>
-
                     <Tab eventKey="products" title="Produtos">
                         <Products />
                     </Tab>
                     <Tab eventKey="clients" title="Clientes">
                         <Clients />
                     </Tab>
-                    <Tab eventKey="users" title="Usuário">
+                    <Tab eventKey="user" title="Usuário">
                         <Users />
                     </Tab>
                 </Tabs>
             </Container>
             <Footer />
-
         </div>
     );
 };
