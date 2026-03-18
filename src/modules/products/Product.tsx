@@ -6,12 +6,12 @@ import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
 import ProductModal from "./Modal";
 import productService from "./Service";
-import type { Product } from "./types";
+import type { ProductForm } from "./types";
 
 function Products() {
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [products, setProducts] = useState<ProductForm[]>([]);
+    const [selectedProduct, setSelectedProduct] = useState<ProductForm | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -45,7 +45,7 @@ function Products() {
         toast.success("Produto excluído com sucesso!");
     };
 
-    const handleEdit = (product: Product) => {
+    const handleEdit = (product: ProductForm) => {
         setSelectedProduct(product);
         setOpenModal(true);
     };
@@ -85,9 +85,7 @@ function Products() {
                             {!!products.length && products.map((p) => (
                                 <tr key={p.id}>
                                     <td>{p.name}</td>
-                                    <td className="text-center">
-                                        {Number(p.price).toFixed(2)}
-                                    </td>
+                                    <td className="text-center">{Number(p.price).toFixed(2)}</td>
                                     <td className="text-center">
                                         <div className="d-flex justify-content-center gap-2">
                                             <PencilFill

@@ -9,7 +9,7 @@ import ClientModal from "../clients/Modal";
 import ClientService from "../clients/Service";
 import ProductModal from "../products/Modal";
 import productService from "../products/Service";
-import type { Product } from "../products/types";
+import type { ProductForm } from "../products/types";
 import BudgetItemTable from "./ItemTable";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
@@ -28,7 +28,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     items: [],
     total: 0,
   })
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductForm[]>([]);
   const [openProductModal, setOpenProductModal] = useState(false);
 
   const [openClientModal, setOpenClientModal] = useState(false);
@@ -49,9 +49,15 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   }, []);
 
   const loadProducts = async () => {
-    const response = await productService.getAll();
-
-    setProducts(response.data);
+    startLoading()
+    try {
+      const response = await productService.getAll();
+      setProducts(response.data);
+    } catch (error) {
+      console.log('erro ->', error)
+    } finally {
+      endLoading()
+    }
   };
 
   const loadClients = async () => {
@@ -76,8 +82,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     }
     formData.total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+    startLoading()
     try {
-      startLoading()
       if (selectedBudget) {
         await BudgetService.update(formData)
       } else {
@@ -139,7 +145,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         {
           productId: product.id!,
           name: product.name,
-          price: product.price,
+          price: Number(product.price),
           quantity: 1
         }
       ]
@@ -181,7 +187,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
             <Form.Group className="mb-3">
               <Form.Label>Nome do Cliente</Form.Label>
               <Row>
-                <Col xs={10} md={`${selectedBudget ? 12 : 11}`}>
+                <Col xs={`${selectedBudget ? 12 : 10}`} md={`${selectedBudget ? 12 : 11}`}>
                   <CustomSelect
                     options={clientList}
                     value={formData.clientId}

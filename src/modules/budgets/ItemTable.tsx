@@ -1,4 +1,5 @@
-import { Button, Form, Table } from "react-bootstrap";
+import { Form, Table } from "react-bootstrap";
+import { TrashFill } from "react-bootstrap-icons";
 import { formatMoney } from "../../utils/formaters";
 import type { BudgetItem } from "./types";
 
@@ -52,13 +53,14 @@ export default function BudgetItemTable({ items, onChangeItems }: Props) {
                             </td>
                             <td className="align-content-center text-center">{formatMoney(item.price * item.quantity)}</td>
                             <td className="align-content-center text-center">
-                                <Button
-                                    variant="danger"
-                                    size="sm"
-                                    onClick={() => removeItem(item)}
-                                >
-                                    Excluir
-                                </Button>
+
+                                <TrashFill
+                                    size="1.5rem"
+                                    color="red"
+                                    role="button"
+                                    onClick={() => { removeItem(item) }}
+                                />
+
                             </td>
                         </tr>
                     ))}

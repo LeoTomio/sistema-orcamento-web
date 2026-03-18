@@ -25,9 +25,12 @@ const BudgetService = {
         return data
     },
 
-    async generatePdf(id: any) {
-        const { data } = await api.get(`/budget/pdf/${id}`);
-        return data
+    async generatePdf(id: string) {
+        const response = await api.get(`/budget/pdf/${id}`, {
+            responseType: "blob"
+        });
+
+        return response.data;
     }
 };
 

@@ -4,16 +4,19 @@ import NavBar from "../../components/NavBar";
 import Budget from "../budgets/Budget";
 import Products from "../products/Product";
 import Clients from "../clients/Client";
+import Footer from "../../components/Footer";
+import Users from "../user/User";
 
 const Dashboard = () => {
 
-    const [activeTab, setActiveTab] = useState<string>("budgets");
+    const [activeTab, setActiveTab] = useState<string>("users");
 
 
     return (
-        <>
+
+        <div className="d-flex flex-column min-vh-100">
             <NavBar />
-            <Container className="py-4" style={{ maxWidth: "900px" }}>
+            <Container className="py-4 flex-grow-1" style={{ maxWidth: "900px" }}>
                 <Tabs
                     activeKey={activeTab}
                     onSelect={(k) => setActiveTab(k!)}
@@ -29,14 +32,17 @@ const Dashboard = () => {
                     <Tab eventKey="products" title="Produtos">
                         <Products />
                     </Tab>
-
                     <Tab eventKey="clients" title="Clientes">
                         <Clients />
                     </Tab>
+                    <Tab eventKey="users" title="Usuário">
+                        <Users />
+                    </Tab>
                 </Tabs>
             </Container>
+            <Footer />
 
-        </>
+        </div>
     );
 };
 

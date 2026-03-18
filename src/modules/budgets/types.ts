@@ -7,6 +7,7 @@ export interface BudgetItem {
 
 export interface Budget {
     id?: string;
+    status?: string;
     clientId: string;
     client?: { name: string }
     items: BudgetItem[];

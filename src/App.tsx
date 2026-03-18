@@ -1,22 +1,20 @@
-import { Route, BrowserRouter, Routes, Navigate } from "react-router-dom";
-import Dashboard from "./modules/dashboard/Dashboard";
-import { AuthProvider } from "./context/AuthContext";
-import Login from "./modules/login/Login";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { SessionExpiredCard } from "./components/SessionExpiredCard";
 import { LoadingProvider } from "./context/LoadingContext";
+import Dashboard from "./modules/dashboard/Dashboard";
+import Login from "./modules/login/Login";
 
 function App() {
   return (
-    <AuthProvider>
-      <LoadingProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </LoadingProvider>
-    </AuthProvider>
+    <LoadingProvider>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/*" element={<Navigate to="/login" replace />} />
+        </Routes>
+
+        <SessionExpiredCard /> 
+    </LoadingProvider>
   )
 }
 

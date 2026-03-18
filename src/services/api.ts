@@ -10,50 +10,34 @@ export const api = axios.create({
   },
 });
 
-// Interceptor de request para login (comentado por enquanto)
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-
-// Interceptor de response para capturar erros e mostrar toast
-api.interceptors.response.use(
-  (response) => response, // sucesso
-  (error) => {
-    if (error.response) {
-      // Erro retornado pelo backend (status 4xx ou 5xx)
-      const msg =
-        error.response.data?.message || // se o backend mandar { message: '...' }
-        error.response.data ||          // ou qualquer coisa que venha no body
-        "Ocorreu um erro inesperado";
-
-      toast.error(msg);
-    } else if (error.request) {
-      // requisição feita mas sem resposta
-      toast.error("Não foi possível conectar ao servidor.");
-    } else {
-      // outro erro inesperado
-      toast.error("Erro inesperado: " + error.message);
-    }
-
-    return Promise.reject(error);
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+},
+  (error) => Promise.reject(error)
 );
 
-// Interceptor de response para login (comentado por enquanto)
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       localStorage.removeItem("token");
-//       window.location.href = "/login";
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.response.use((response) => response, (error) => {
+  const url = error.config?.url;
+
+  if (error.response) {
+    if (error.response.status === 401 && url !== "/auth/login") {
+      window.dispatchEvent(new Event("session-expired"));
+      return Promise.reject(error);
+    }
+
+    const msg = error.response.data?.message || error.response.data || "Ocorreu um erro inesperado";
+    toast.error(msg);
+
+  } else if (error.request) {
+    toast.error("Não foi possível conectar ao servidor.");
+
+  } else {
+    toast.error("Erro inesperado: " + error.message);
+  }
+  return Promise.reject(error);
+}
+);

@@ -4,21 +4,23 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useLoading } from "../../context/LoadingContext";
 import productService from "./Service";
-import type { Product } from "./types";
+import type { Product, ProductForm } from "./types";
+import { formatMoney } from "../../utils/formaters";
+import RequiredLabel from "../../components/RequiredLabel";
 
 interface Props {
     show: boolean;
     onClose: () => void;
-    selectedProduct: Product | null;
+    selectedProduct: ProductForm | null;
     onSuccess: () => void;
     isFromBudget?: boolean
 }
 
 export default function ProductModal({ onClose, show, selectedProduct, onSuccess, isFromBudget }: Props) {
     const { endLoading, startLoading } = useLoading();
-    const [formData, setFormData] = useState<Product>({
+    const [formData, setFormData] = useState<ProductForm>({
         name: "",
-        price: 0,
+        price: "",
     });
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -36,14 +38,25 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
             return;
         }
 
+        const priceNumber = parseFloat(price);
+
+        if (isNaN(priceNumber)) {
+            toast.warning("Preço inválido");
+            return;
+        }
+
+        startLoading();
         try {
-            startLoading();
+            const payload: Product = {
+                ...formData,
+                price: priceNumber,
+            };
 
             if (selectedProduct) {
-                await productService.update(formData);
+                await productService.update(payload);
             } else {
                 await productService.create({
-                    ...formData,
+                    ...payload,
                     id: uuid(),
                 });
             }
@@ -59,9 +72,35 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
+        if (name === "price") {
+            const normalized = value.replace(",", ".");
+
+            setFormData(prev => ({
+                ...prev,
+                price: normalized
+            }));
+
+            return;
+        }
+
         setFormData(prev => ({
             ...prev,
-            [name]: name === "price" ? Number(value) : value,
+            [name]: value
+        }));
+    };
+
+    const handlePriceBlur = () => {
+        if (!formData.price) return;
+
+        const numberValue = Number(formData.price);
+
+        if (isNaN(numberValue)) return;
+
+        const formatted = formatMoney(numberValue);
+
+        setFormData(prev => ({
+            ...prev,
+            price: formatted.replace(",", ".")
         }));
     };
 
@@ -76,7 +115,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
     const clearForm = () => {
         setFormData({
             name: "",
-            price: 0,
+            price: "",
         });
     };
 
@@ -92,22 +131,23 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
-                    <Form className="mb-3">
-                        <Form.Label>Nome</Form.Label>
-                        <Form.Control
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                        />
-                    </Form>
+                    <RequiredLabel>Nome</RequiredLabel>
+                    <Form.Control
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                    />
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Preço</Form.Label>
+
+                        <RequiredLabel>Preço</RequiredLabel>
                         <Form.Control
-                            type="number"
                             name="price"
                             value={formData.price}
                             onChange={handleChange}
+                            onBlur={handlePriceBlur}
+                            required
                         />
                     </Form.Group>
 

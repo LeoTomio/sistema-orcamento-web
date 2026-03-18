@@ -1,20 +1,13 @@
-import type { User } from "./User";
-
-let users: User[] = []
+import { api } from "../../services/api";
 
 const loginService = {
-    login: (email: string, password: string) => {
-        if (email === "t@t.com" && password === "1") {
-            return true
-        } else {
-            return false
-        }
-    },
+    login: async (email: string, password: string) => {
+        const response = await api.post('/auth/login', {
+            email,
+            password
+        });
 
-
-    create: (budget: User) => {
-        users.push(budget);
+        return response.data;
     },
 };
-
 export default loginService

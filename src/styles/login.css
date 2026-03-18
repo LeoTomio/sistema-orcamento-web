@@ -2,7 +2,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 80vh;
     background: #f4f4f5;
 }
 
@@ -31,10 +31,6 @@
     justify-content: center;
 }
 
-.login-container .icon-circle svg {
-    color: #5b5fc7;
-}
-
 .login-container .card-header {
     padding-block: 0px;
     border: none;
@@ -48,21 +44,6 @@
 .login-container p {
     font-size: .9rem;
     color: #6f7072;
-}
-
-/* ===== FORM ===== */
-.login-container form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.login-container label {
-    min-width: 80px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #1d2128;
-    margin: 0;
 }
 
 /* ===== INPUT ===== */

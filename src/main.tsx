@@ -4,6 +4,8 @@ import App from "./App";
 import { Toaster } from 'sonner'
 import './styles/global.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter } from "react-router-dom";
 
 const rootElement = document.getElementById("root");
 
@@ -13,7 +15,12 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Toaster closeButton richColors/>
-    <App />
+
+    <BrowserRouter>
+      <AuthProvider>
+        <Toaster closeButton richColors />
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>
 );

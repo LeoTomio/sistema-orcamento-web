@@ -7,6 +7,7 @@ import PaginationComponent from "../../components/Pagination";
 import BudgetModal from "./Modal";
 import BudgetService from "./Service";
 import type { Budget } from "./types";
+import { statusConverter } from "../../utils/formaters";
 
 
 export default function Budgets() {
@@ -26,7 +27,6 @@ export default function Budgets() {
 
     const loadBudgets = async (page: number) => {
         const response = await BudgetService.getAll({ page });
-        console.log('lista', response.data)
         setBudgets(response.data);
         setTotalItems(response.total);
     };
@@ -36,7 +36,6 @@ export default function Budgets() {
 
         await BudgetService.delete(selectedBudget.id!);
 
-        // Se excluir o último item da página
         if (budgets.length === 1 && currentPage > 1) {
             setCurrentPage(prev => prev - 1);
         } else {
@@ -53,10 +52,21 @@ export default function Budgets() {
         setOpenModal(true);
     };
 
-    const generatePDF = async (budget: any) => {
-        await BudgetService.generatePdf(budget.id!);
-    };
+    const handleDownloadPdf = async (budget: Budget) => {
+        const blob = await BudgetService.generatePdf(budget.id!);
 
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `orcamento-${budget.client?.name}.pdf`;
+
+        document.body.appendChild(link);
+        link.click();
+
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    };
     return (
         <>
             <Card className="p-3 mb-4">
@@ -112,7 +122,7 @@ export default function Budgets() {
                                                 size="1.5rem"
                                                 color="#2d4a6e"
                                                 role="button"
-                                                onClick={() => generatePDF(b)}
+                                                onClick={() => handleDownloadPdf(b)}
                                             />
                                         </div>
                                     </td>

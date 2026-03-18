@@ -47,3 +47,13 @@ export function formatPhone(value: string) {
 
   return `(${part1}) ${part2} ${part3}-${part4}`;
 }
+
+
+export function statusConverter(status: string) {
+
+  if (status === "PENDING") return "Pendente";
+  if (status === "APPROVED") return "Aprovado";
+  if (status === "REJECTED") return "Rejeitado";
+  if (status === "CANCELED") return "Cancelado";
+
+}

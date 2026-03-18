@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
+import { LoadingOverlay } from "../components/Loading"
 
 interface LoadingContextType {
     startLoading: () => void
@@ -33,6 +34,7 @@ export const LoadingProvider = ({ children }: LoadingProviderProps) => {
     }), [isLoading])
     return (
         <LoadingContext.Provider value={value}>
+            <LoadingOverlay />
             {children}
         </LoadingContext.Provider>
     )
