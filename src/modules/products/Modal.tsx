@@ -38,7 +38,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
             return;
         }
 
-        const priceNumber = parseFloat(price);
+        const priceNumber = parseFloat(String(price));
 
         if (isNaN(priceNumber)) {
             toast.warning("Preço inválido");
