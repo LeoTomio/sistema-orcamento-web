@@ -30,7 +30,16 @@ const BudgetService = {
             responseType: "blob"
         });
         return response.data;
-    }
+    },
+
+    async updateSignature(budgetId: string, signature: string) {
+        const response = await api.patch(`/budget/subscribe`, {
+            budgetId,
+            signature,
+        });
+
+        return response.data;
+    },
 };
 
 export default BudgetService

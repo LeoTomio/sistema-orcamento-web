@@ -1,16 +1,17 @@
 import { useRef } from "react";
+import { Button, Modal } from "react-bootstrap";
 import SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
 import { useLoading } from "../../context/LoadingContext";
-import userService from "../user/Service";
-import { Button, Modal } from "react-bootstrap";
+import BudgetService from "./Service";
 
 interface SignatureModalProps {
     show: boolean
+    budgetId: string
     onClose: () => void
 }
 
-export function SignatureModal({ show, onClose }: SignatureModalProps) {
+export function SignatureModal({ show, onClose, budgetId }: SignatureModalProps) {
     const { endLoading, startLoading } = useLoading()
     const sigCanvas = useRef<SignatureCanvas | null>(null);
 
@@ -30,7 +31,7 @@ export function SignatureModal({ show, onClose }: SignatureModalProps) {
                 .toDataURL("image/png");
 
 
-            await userService.updateSignature(base64);
+            await BudgetService.updateSignature(budgetId, base64);
             toast.success("Assinatura salva com sucesso!");
             onClose();
         } catch (error) {

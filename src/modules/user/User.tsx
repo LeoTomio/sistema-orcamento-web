@@ -7,7 +7,6 @@ import { formatPhone } from "../../utils/formaters";
 import { onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
-import { SignatureModal } from "../budgets/SubscribeModal";
 
 function Users() {
     const { startLoading, endLoading } = useLoading()
@@ -20,7 +19,6 @@ function Users() {
         confirmPassword: ""
     } as User);
 
-    const [openSignatureModal, setOpenSignatureModal] = useState(false);
 
 
     useEffect(() => {
@@ -179,11 +177,6 @@ function Users() {
                                 />
                             </Form.Group>
                         </Col>
-                        <Col xs={12} lg={4}>
-                            <Button className="w-100 mt-4" variant="success" onClick={() => setOpenSignatureModal(true)}>
-                                Criar Assinatura
-                            </Button>
-                        </Col>
                         <Col xs={12} lg={8}>
                             <Button className="w-100 mt-4" type="submit">
                                 Salvar
@@ -192,10 +185,6 @@ function Users() {
                     </Row>
                 </Form>
             </Card>
-            <SignatureModal
-                show={openSignatureModal}
-                onClose={() => { setOpenSignatureModal(false) }}
-            />
         </>
     );
 }

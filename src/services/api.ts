@@ -1,12 +1,8 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-// const localUrl = "http://localhost:3000/api";
-const prodUrl = "https://sistema-orcamento-api-sgii.vercel.app/api"; 
-const BASE_URL = prodUrl
-
 export const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     "Content-Type": "application/json",
   },

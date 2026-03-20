@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Col, Row, Table } from "react-bootstrap";
-import { FiletypePdf, PencilFill, TrashFill } from "react-bootstrap-icons";
+import { FiletypePdf, JournalText, PencilFill, TrashFill, VectorPen } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
 import BudgetModal from "./Modal";
 import BudgetService from "./Service";
+import { SignatureModal } from "./SubscribeModal";
 import type { Budget } from "./types";
 
 
@@ -18,6 +19,8 @@ export default function Budgets() {
 
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const [openSignatureModal, setOpenSignatureModal] = useState(false);
 
     useEffect(() => {
         loadBudgets(currentPage);
@@ -123,6 +126,13 @@ export default function Budgets() {
                                                 role="button"
                                                 onClick={() => handleDownloadPdf(b)}
                                             />
+                                            <div role="button" className="d-flex align-items-center gap-1" onClick={() => {
+                                                setSelectedBudget(b);
+                                                setOpenSignatureModal(true)
+                                            }}>
+                                                <JournalText color="#6f42c1" size={18} />
+                                                <VectorPen color="#6f42c1" size={16} />
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -158,6 +168,11 @@ export default function Budgets() {
                     setSelectedBudget(null);
                     setOpenDeleteModal(false);
                 }}
+            />
+            <SignatureModal
+                show={openSignatureModal}
+                budgetId={selectedBudget?.id!}
+                onClose={() => { setOpenSignatureModal(false) }}
             />
         </>
     );
