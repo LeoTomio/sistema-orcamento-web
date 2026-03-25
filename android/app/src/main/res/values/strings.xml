@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sistema de Orçamentos</string>
+    <string name="title_activity_main">Sistema de Orçamentos</string>
+    <string name="package_name">com.leonardo.orcamentos</string>
+    <string name="custom_url_scheme">com.leonardo.orcamentos</string>
+</resources>

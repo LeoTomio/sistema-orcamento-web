@@ -1,179 +1,230 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
-import { FiletypePdf, JournalText, PencilFill, TrashFill, VectorPen } from "react-bootstrap-icons";
+import { Button, Card, Col, Row } from "react-bootstrap";
+import { FiletypePdf, PencilFill, TrashFill, VectorPen } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
+import "../../styles/budget.css";
 import BudgetModal from "./Modal";
 import BudgetService from "./Service";
 import { SignatureModal } from "./SubscribeModal";
 import type { Budget } from "./types";
-
-
+import { useLoading } from "../../context/LoadingContext";
 export default function Budgets() {
+  const { endLoading, startLoading } = useLoading()
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [openSignatureModal, setOpenSignatureModal] = useState(false);
 
-    const [budgets, setBudgets] = useState<Budget[]>([]);
-    const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
-    const [openModal, setOpenModal] = useState(false);
-    const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  useEffect(() => {
+    loadBudgets(currentPage);
+  }, [currentPage]);
 
-    const [totalItems, setTotalItems] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
+  const loadBudgets = async (page: number) => {
+    try {
+      startLoading()
+      const response = await BudgetService.getAll({ page });
+      console.log(response)
+      setBudgets(response.data);
+      setTotalItems(response.total);
+    } catch (error) {
+      console.log('e->', error)
+    } finally {
+      endLoading()
+    }
+  };
 
-    const [openSignatureModal, setOpenSignatureModal] = useState(false);
+  const handleDelete = async () => {
+    if (!selectedBudget) return;
 
-    useEffect(() => {
-        loadBudgets(currentPage);
-    }, [currentPage]);
+    await BudgetService.delete(selectedBudget.id!);
 
+    if (budgets.length === 1 && currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    } else {
+      loadBudgets(currentPage);
+    }
 
-    const loadBudgets = async (page: number) => {
-        const response = await BudgetService.getAll({ page });
-        setBudgets(response.data);
-        setTotalItems(response.total);
-    };
+    setSelectedBudget(null);
+    setOpenDeleteModal(false);
+    toast.success("Orçamento excluído com sucesso!");
+  };
 
-    const handleDelete = async () => {
-        if (!selectedBudget) return;
+  const handleEdit = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setOpenModal(true);
+  };
 
-        await BudgetService.delete(selectedBudget.id!);
+  const handleDownloadPdf = async (budget: Budget) => {
+    const blob = await BudgetService.generatePdf(budget.id!);
+    const url = window.URL.createObjectURL(blob);
 
-        if (budgets.length === 1 && currentPage > 1) {
-            setCurrentPage(prev => prev - 1);
-        } else {
-            loadBudgets(currentPage);
-        }
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `orcamento-${budget.client?.name}.pdf`;
 
-        setSelectedBudget(null);
-        setOpenDeleteModal(false);
-        toast.success("Orçamento excluído com sucesso!");
-    };
+    document.body.appendChild(link);
+    link.click();
 
-    const handleEdit = (budget: Budget) => {
-        setSelectedBudget(budget);
-        setOpenModal(true);
-    };
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
 
-    const handleDownloadPdf = async (budget: Budget) => {
-        const blob = await BudgetService.generatePdf(budget.id!);
+  const openDelete = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setOpenDeleteModal(true);
+  };
 
-        const url = window.URL.createObjectURL(blob);
+  const openSignature = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setOpenSignatureModal(true);
+  };
 
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `orcamento-${budget.client?.name}.pdf`;
+  return (
+    <>
+      <Card className="page-container">
+        <Row className="align-items-center mb-4">
+          <Col xs={12} md={8}>
+            <div className="mb-3">
+              <h5 className="mb-1">Orçamentos</h5>
+              <small className="text-muted">
+                Gerencie os orçamentos cadastrados
+              </small>
+            </div>
+          </Col>
 
-        document.body.appendChild(link);
-        link.click();
+          <Col xs={12} md={4} className="text-md-end">
+            <Button
+              className="submitButton w-100"
+              onClick={() => {
+                setSelectedBudget(null);
+                setOpenModal(true);
+              }}
+            >
+              Adicionar
+            </Button>
+          </Col>
+        </Row>
 
-        link.remove();
-        window.URL.revokeObjectURL(url);
-    };
-    return (
-        <>
-            <Card className="p-3 mb-4">
-                <Row className="align-items-center mb-4">
-                    <Col sm={8}>
-                        <h5 className="mb-0">Orçamentos</h5>
-                    </Col>
+        <Row className="g-4">
+          {budgets.length > 0 ? (
+            budgets.map((b) => (
+              <Col key={b.id} xs={12} md={6} xl={4}>
+                <Card className="h-100 border-0 internal-card">
+                  <Card.Body className="p-3 p-md-4 d-flex flex-column">
+                    <div className="mb-3">
+                      <div className="budget-label">CLIENTE</div>
+                      <div className="fw-semibold fs-6">
+                        {b.client?.name || "-"}
+                      </div>
+                    </div>
 
-                    <Col sm={4} className="text-end">
-                        <Button className="submitButton"
-                            onClick={() => {
-                                setSelectedBudget(null);
-                                setOpenModal(true);
-                            }}
+                    <div className="mb-4">
+                      <div className="budget-label">TOTAL</div>
+                      <div className="fw-bold fs-4 text-success">
+                        R$ {Number(b.total).toFixed(2)}
+                      </div>
+                    </div>
+
+                    <div className="mt-auto">
+                      <div className="actions-container">
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          className="action-btn"
+                          onClick={() => handleEdit(b)}
                         >
-                            Adicionar
+                          <PencilFill size={14} />
+                          <span>Editar</span>
                         </Button>
-                    </Col>
-                </Row>
-                <div className="table-responsive">
-                    <Table bordered>
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th className="text-center" style={{ width: "20%", whiteSpace: "nowrap" }}>Total (R$)</th>
-                                <th className="text-center" style={{ width: "20%", whiteSpace: "nowrap" }}>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {budgets.map(b => (
-                                <tr key={b.id}>
-                                    <td>{b.client?.name}</td>
-                                    <td className="text-center">{Number(b.total).toFixed(2)}</td>
-                                    <td className="text-center">
-                                        <div className="d-flex justify-content-center gap-2 px-2">
-                                            <PencilFill
-                                                size="1.5rem"
-                                                color="#87d86e"
-                                                role="button"
-                                                onClick={() => handleEdit(b)}
-                                            />
 
-                                            <TrashFill
-                                                size="1.5rem"
-                                                color="red"
-                                                role="button"
-                                                onClick={() => {
-                                                    setSelectedBudget(b);
-                                                    setOpenDeleteModal(true);
-                                                }}
-                                            />
-                                            <FiletypePdf
-                                                size="1.5rem"
-                                                color="#2d4a6e"
-                                                role="button"
-                                                onClick={() => handleDownloadPdf(b)}
-                                            />
-                                            <div role="button" className="d-flex align-items-center gap-1" onClick={() => {
-                                                setSelectedBudget(b);
-                                                setOpenSignatureModal(true)
-                                            }}>
-                                                <JournalText color="#6f42c1" size={18} />
-                                                <VectorPen color="#6f42c1" size={16} />
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                    <PaginationComponent
-                        currentPage={currentPage}
-                        totalItems={totalItems}
-                        onPageChange={setCurrentPage}
-                    />
-                </div>
-            </Card>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="action-btn"
+                          onClick={() => handleDownloadPdf(b)}
+                        >
+                          <FiletypePdf size={14} />
+                          <span>PDF</span>
+                        </Button>
 
-            <BudgetModal
-                show={openModal}
-                onClose={() => setOpenModal(false)}
-                selectedBudget={selectedBudget}
-                onSuccess={() => {
-                    loadBudgets(currentPage);
-                    toast.success(
-                        `Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`
-                    );
-                }}
-            />
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="action-btn"
+                          onClick={() => openSignature(b)}
+                        >
+                          <VectorPen size={13} />
+                          <span>Assinar</span>
+                        </Button>
 
-            <ConfirmModal
-                show={openDeleteModal}
-                title="Confirmar Exclusão"
-                message={`Deseja excluir este orçamento?`}
-                onConfirm={handleDelete}
-                onCancel={() => {
-                    setSelectedBudget(null);
-                    setOpenDeleteModal(false);
-                }}
-            />
-            <SignatureModal
-                show={openSignatureModal}
-                budgetId={selectedBudget?.id!}
-                onClose={() => { setOpenSignatureModal(false) }}
-            />
-        </>
-    );
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="action-btn"
+                          onClick={() => openDelete(b)}
+                        >
+                          <TrashFill size={14} />
+                          <span>Excluir</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))
+          ) : (
+            <Col xs={12}>
+              <Card className="border-0 shadow-sm rounded-4">
+                <Card.Body className="text-center py-5 text-muted">
+                  Nenhum orçamento encontrado.
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
+        </Row>
+
+        <div className="mt-4">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </Card>
+
+      <BudgetModal
+        show={openModal}
+        onClose={() => setOpenModal(false)}
+        selectedBudget={selectedBudget}
+        onSuccess={() => {
+          loadBudgets(currentPage);
+          toast.success(
+            `Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`
+          );
+        }}
+      />
+
+      <ConfirmModal
+        show={openDeleteModal}
+        title="Confirmar Exclusão"
+        message="Deseja excluir este orçamento?"
+        onConfirm={handleDelete}
+        onCancel={() => {
+          setSelectedBudget(null);
+          setOpenDeleteModal(false);
+        }}
+      />
+
+      <SignatureModal
+        show={openSignatureModal}
+        budgetId={selectedBudget?.id!}
+        onClose={() => setOpenSignatureModal(false)}
+      />
+    </>
+  );
 }

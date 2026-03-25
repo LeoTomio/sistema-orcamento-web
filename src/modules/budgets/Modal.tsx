@@ -49,8 +49,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   }, []);
 
   const loadProducts = async () => {
-    startLoading()
     try {
+      startLoading()
       const response = await productService.getAll();
       setProducts(response.data);
     } catch (error) {
@@ -82,8 +82,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     }
     formData.total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-    startLoading()
     try {
+      startLoading()
       if (selectedBudget) {
         await BudgetService.update(formData)
       } else {
@@ -91,16 +91,12 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       }
       onSuccess()
       clearForm()
-      handleClose()
+      onClose()
     } catch (error) {
-      console.log('erro ->', error)
+      console.log('e->', error)
     } finally {
       endLoading()
     }
-  };
-  const handleClose = () => {
-    clearForm();
-    onClose();
   };
 
   useEffect(() => {
@@ -175,19 +171,19 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       <Modal
         centered
         show={show}
-        onHide={handleClose}
+        onHide={onClose}
         size="lg"
         contentClassName={openProductModal || openClientModal ? "budget-with-overlay" : ""}>
         <Modal.Header closeButton>
-          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento </Modal.Title>
+          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento nº {String(selectedBudget?.number).padStart(4, '0')}</Modal.Title>
         </Modal.Header>
 
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Nome do Cliente</Form.Label>
-              <Row>
-                <Col xs={`${selectedBudget ? 12 : 10}`} md={`${selectedBudget ? 12 : 11}`}>
+              <Row className="d-flex justify-content-center align-items-center">
+                <Col xs={selectedBudget ? 12 : 9} md={selectedBudget ? 12 : 10} lg={selectedBudget ? 12 : 11}>
                   <CustomSelect
                     options={clientList}
                     value={formData.clientId}
@@ -197,33 +193,36 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
                     disabled={!!selectedBudget}
                   />
                 </Col>
-                {!selectedBudget && <Col xs={2} md={1} className="ps-0">
-                  <Button>
-                    <Plus size="1.5rem" onClick={() => setOpenClientModal(true)} />
-                  </Button>
-                </Col>}
+
+                {!selectedBudget && (
+                  <Col xs={3} md={2} lg={1} className="ps-0">
+                    <Button className="w-100">
+                      <Plus size="1.5rem" onClick={() => setOpenClientModal(true)} />
+                    </Button>
+                  </Col>
+                )}
               </Row>
 
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label>Produto</Form.Label>
-              <Row >
-                <Col xs={10} md={11}>
+              <Row className="d-flex justify-content-center align-items-center">
+                <Col xs={9} md={10} lg={11}>
                   <CustomSelect
                     options={availableProducts}
-                    onChange={(value) => {
-                      if (value) handleAddProduct(String(value));
-                    }}
+                    onChange={(value) => value && handleAddProduct(String(value))}
                     clearOnSelect
                   />
                 </Col>
-                <Col xs={2} md={1} className="ps-0">
-                  <Button>
+
+                <Col xs={3} md={2} lg={1} className="ps-0">
+                  <Button className="w-100">
                     <Plus size="1.5rem" onClick={() => setOpenProductModal(true)} />
                   </Button>
                 </Col>
               </Row>
+
             </Form.Group>
 
             <BudgetItemTable

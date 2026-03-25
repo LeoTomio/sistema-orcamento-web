@@ -16,20 +16,12 @@
 }
 
 .footer-text {
-  margin: 2px 0 0 0;
+  margin: 0;
   font-size: 12px;
 }
 
-.footer-social {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.social-icon {
-  color: #aaa;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+.footer-social > * {
+  margin: 5px;
 }
 
 .social-icon:hover {
@@ -50,39 +42,20 @@
 
 .footer-copy {
   text-align: center;
-  font-size: 11px;
-  padding-bottom: 4px;
+  font-size: 12px;
 }
 
-
-
 @media (max-width: 768px) {
-
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
 
   .footer-item {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 0;
+    margin-bottom: 4px;
   }
 
-  .footer-title {
-    font-size: 12px;
-  }
-
-  .footer-text {
-    font-size: 12px;
-    margin: 0;
-  }
-
-  .footer-social {
-    margin: 0;
+  .footer-item>*:not(:last-child) {
+    margin-right: 6px;
   }
 
   hr {

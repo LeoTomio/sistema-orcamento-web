@@ -9,6 +9,7 @@ export interface Budget {
     id?: string;
     status?: string;
     clientId: string;
+    number?: number;
     client?: { name: string }
     items: BudgetItem[];
     total: number;

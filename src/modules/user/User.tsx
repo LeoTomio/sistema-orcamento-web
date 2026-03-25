@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react";
-import { Button, Card, Col, Form, Row } from "react-bootstrap";
+import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
 import { useLoading } from "../../context/LoadingContext";
@@ -7,6 +7,7 @@ import { formatPhone } from "../../utils/formaters";
 import { onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 
 function Users() {
     const { startLoading, endLoading } = useLoading()
@@ -20,19 +21,27 @@ function Users() {
     } as User);
 
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         loadUser();
     }, []);
 
     const loadUser = async () => {
-        const response = await userService.getUser();
+        try {
+            startLoading();
+            const response = await userService.getUser();
+            setUserData({
+                ...response,
+                password: "",
+                confirmPassword: ""
+            });
+        } catch (error) {
 
-        setUserData({
-            ...response,
-            password: "",
-            confirmPassword: ""
-        });
+        } finally {
+            endLoading()
+        }
     };
 
 
@@ -76,8 +85,8 @@ function Users() {
             ...(userData.password ? { password: userData.password } : {})
         };
 
-        startLoading()
         try {
+            startLoading()
             await userService.updateUser(payload)
             toast.success('Usuário atualizado com sucesso')
         } catch (error) {
@@ -103,7 +112,7 @@ function Users() {
 
     return (
         <>
-            <Card className="p-4 mb-4">
+            <Card className="page-container">
                 <h5 className="mb-0">Dados do Usuário</h5>
                 <Form onSubmit={handleSubmit} className="mt-2">
                     <Row>
@@ -156,28 +165,55 @@ function Users() {
                         <Col xs={12} lg={6}>
                             <Form.Group>
                                 <Form.Label>Senha</Form.Label>
-                                <Form.Control
-                                    name="password"
-                                    type="password"
-                                    value={userData.password || ""}
-                                    onChange={handleChange}
-
-                                />
+                                <InputGroup>
+                                    <Form.Control
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={userData.password || ""}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="********"
+                                        className="password-input"
+                                    />
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        type="button"
+                                        className="show-password-icon"
+                                    >
+                                        {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                    </Button>
+                                </InputGroup>
                             </Form.Group>
                         </Col>
+
                         <Col xs={12} lg={6}>
                             <Form.Group>
                                 <Form.Label>Confirmar Senha</Form.Label>
-                                <Form.Control
-                                    name="confirmPassword"
-                                    type="password"
-                                    value={userData.confirmPassword || ""}
-                                    onChange={handleChange}
+                                <InputGroup>
+                                    <Form.Control
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        name="confirmPassword"
+                                        value={userData.confirmPassword}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="********"
+                                        className="password-input"
+                                    />
 
-                                />
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        type="button"
+                                        className="show-password-icon"
+                                    >
+                                        {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                    </Button>
+                                </InputGroup>
+
                             </Form.Group>
                         </Col>
-                        <Col xs={12} lg={8}>
+                        <Col xs={12}>
                             <Button className="w-100 mt-4" type="submit">
                                 Salvar
                             </Button>

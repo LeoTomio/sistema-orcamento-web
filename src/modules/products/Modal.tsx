@@ -25,7 +25,6 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
         const { name, price } = formData;
 
         if (!name) {
@@ -37,16 +36,17 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
             toast.warning("Campo preço é obrigatório");
             return;
         }
-
-        const priceNumber = parseFloat(String(price));
+        const priceNumber = Number(
+            String(price).replace(/\./g, "").replace(",", ".")
+        );
 
         if (isNaN(priceNumber)) {
             toast.warning("Preço inválido");
             return;
         }
 
-        startLoading();
         try {
+            startLoading();
             const payload: Product = {
                 ...formData,
                 price: priceNumber,
@@ -62,8 +62,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
             }
 
             onSuccess();
-            clearForm();
-            onClose();
+            onClose()
         } finally {
             endLoading();
         }
@@ -73,11 +72,18 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
         const { name, value } = e.target;
 
         if (name === "price") {
-            const normalized = value.replace(",", ".");
+            const onlyNumbers = value.replace(/\D/g, "");
+
+            const cents = Number(onlyNumbers) || 0;
+
+            const formatted = (cents / 100).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
 
             setFormData(prev => ({
                 ...prev,
-                price: normalized
+                price: formatted
             }));
 
             return;
@@ -106,7 +112,12 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
     useEffect(() => {
         if (selectedProduct) {
-            setFormData(selectedProduct);
+            const normalized = formatMoney(Number(selectedProduct.price))
+
+            setFormData({
+                ...selectedProduct,
+                price: normalized
+            });
         } else {
             clearForm();
         }
@@ -118,6 +129,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
             price: "",
         });
     };
+
 
     return (
         <Modal centered
@@ -131,17 +143,18 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
-                    <RequiredLabel>Nome</RequiredLabel>
-                    <Form.Control
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                    />
+                    <Form.Group className="mb-3">
+                        <RequiredLabel>Nome</RequiredLabel>
+                        <Form.Control
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                        />
+                    </Form.Group>
 
                     <Form.Group className="mb-3">
-
-                        <RequiredLabel>Preço</RequiredLabel>
+                        <RequiredLabel>Preço R$</RequiredLabel>
                         <Form.Control
                             name="price"
                             value={formData.price}

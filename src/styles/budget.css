@@ -1,0 +1,16 @@
+.budget-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+       background: #ffffff;
+    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+}
+
+.budget-card:hover {
+    transform: translateY(-2px);
+}
+
+.budget-label {
+    color: #6c757d;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.3px;
+}

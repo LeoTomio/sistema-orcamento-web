@@ -1,9 +1,9 @@
 import { useState, type ChangeEvent } from "react"
-import { Button, Card, Container, Form } from "react-bootstrap"
+import { Button, Card, Container, Form, InputGroup } from "react-bootstrap"
 import "../../styles/login.css"
 import { useAuth } from "../../context/AuthContext"
 import { useLoading } from "../../context/LoadingContext"
-import { Clipboard2 } from "react-bootstrap-icons"
+import { Clipboard2, Eye, EyeSlash } from "react-bootstrap-icons"
 import Footer from "../../components/Footer"
 import { toast } from "sonner"
 
@@ -11,6 +11,7 @@ const Login = () => {
     const { signIn } = useAuth()
     const { endLoading, startLoading } = useLoading()
 
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -75,14 +76,27 @@ const Login = () => {
 
                             <Form.Group className="mb-3">
                                 <Form.Label>Senha</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="********"
-                                />
+
+                                <InputGroup>
+                                    <Form.Control
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="********"
+                                        className="password-input"
+                                    />
+
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        type="button"
+                                        className="show-password-icon"
+                                    >
+                                        {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                                    </Button>
+                                </InputGroup>
                             </Form.Group>
 
                             <Button type="submit" className="w-100 submitButton">

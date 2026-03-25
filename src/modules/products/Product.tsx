@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
-import { PencilFill, TrashFill } from 'react-bootstrap-icons';
+import { Button, Card, Col, Row } from "react-bootstrap";
+import { PencilFill, TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
 import ProductModal from "./Modal";
 import productService from "./Service";
 import type { ProductForm } from "./types";
+import { useLoading } from "../../context/LoadingContext";
+import { formatMoney } from "../../utils/formaters";
 
 function Products() {
-
+    const { endLoading, startLoading } = useLoading();
     const [products, setProducts] = useState<ProductForm[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<ProductForm | null>(null);
     const [openModal, setOpenModal] = useState(false);
@@ -23,9 +25,16 @@ function Products() {
     }, [currentPage]);
 
     const loadProducts = async (page: number = 1) => {
-        const response = await productService.getAll(page);
-        setProducts(response.data);
-        setTotalItems(response.total);
+        try {
+            startLoading();
+            const response = await productService.getAll(page);
+            setProducts(response.data);
+            setTotalItems(response.total);
+        } catch (error) {
+            console.log("e->", error);
+        } finally {
+            endLoading();
+        }
     };
 
     const handleDelete = async () => {
@@ -33,9 +42,8 @@ function Products() {
 
         await productService.delete(selectedProduct.id!);
 
-        // Se excluir o último item da página
         if (products.length === 1 && currentPage > 1) {
-            setCurrentPage(prev => prev - 1);
+            setCurrentPage((prev) => prev - 1);
         } else {
             loadProducts(currentPage);
         }
@@ -52,15 +60,19 @@ function Products() {
 
     return (
         <>
-            <Card className="p-3 mb-4">
+            <Card className="page-container">
                 <Row className="align-items-center mb-4">
-                    <Col sm={8}>
-                        <h5 className="mb-0">Produtos Cadastrados</h5>
+                    <Col xs={12} md={8}>
+                        <div className="mb-3">
+                            <h5 className="mb-1">Produtos</h5>
+                            <small className="text-muted">
+                                Gerencie os produtos cadastrados
+                            </small>
+                        </div>
                     </Col>
-
-                    <Col sm={4} className="text-end">
+                    <Col xs={12} md={4} className="text-md-end">
                         <Button
-                            className="submitButton"
+                            className="submitButton w-100"
                             onClick={() => {
                                 setSelectedProduct(null);
                                 setOpenModal(true);
@@ -71,46 +83,50 @@ function Products() {
                     </Col>
                 </Row>
 
-                <div className="table-responsive">
-                    <Table bordered hover className="align-middle">
-                        <thead>
-                            <tr>
-                                <th>Produto</th>
-                                <th className="text-center" style={{ width: "20%", whiteSpace: "nowrap" }}>Preço (R$)</th>
-                                <th className="text-center" style={{ width: "10%", whiteSpace: "nowrap" }}>Ações</th>
-                            </tr>
-                        </thead>
+                {/* LISTA DE CARDS */}
+                <Row xs={1} sm={2} md={3} lg={3} className="g-3">
+                    {products.length > 0 &&
+                        products.map((p) => (
+                            <Col key={p.id}>
+                                <Card className="h-100 internal-card">
+                                    <Card.Body className="d-flex flex-column">
+                                        <Card.Title className="fw-bold">{p.name}</Card.Title>
 
-                        <tbody>
-                            {!!products.length && products.map((p) => (
-                                <tr key={p.id}>
-                                    <td>{p.name}</td>
-                                    <td className="text-center">{Number(p.price).toFixed(2)}</td>
-                                    <td className="text-center">
-                                        <div className="d-flex justify-content-center gap-2">
-                                            <PencilFill
-                                                size="1.5rem"
-                                                color="#87d86e"
-                                                role="button"
-                                                onClick={() => handleEdit(p)}
-                                            />
-
-                                            <TrashFill
-                                                size="1.5rem"
-                                                color="red"
-                                                role="button"
-                                                onClick={() => {
-                                                    setSelectedProduct(p);
-                                                    setOpenDeleteModal(true);
-                                                }}
-                                            />
+                                        <Card.Text className="text-muted mb-3">
+                                            <strong>Preço:</strong> R$ {formatMoney(Number(p.price))}
+                                        </Card.Text>
+                                        <div className="mt-auto">
+                                            <div className="actions-container">
+                                                <Button
+                                                    variant="outline-success"
+                                                    size="sm"
+                                                    className="action-btn"
+                                                    onClick={() => handleEdit(p)}
+                                                >
+                                                    <PencilFill size={14} />
+                                                    <span>Editar</span>
+                                                </Button>
+                                                <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    className="action-btn"
+                                                    onClick={() => {
+                                                        setSelectedProduct(p);
+                                                        setOpenDeleteModal(true);
+                                                    }}
+                                                >
+                                                    <TrashFill size={14} />
+                                                    <span>Excluir</span>
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                </Row>
 
+                <div className="mt-4">
                     <PaginationComponent
                         currentPage={currentPage}
                         totalItems={totalItems}
@@ -121,7 +137,7 @@ function Products() {
 
             <ProductModal
                 show={openModal}
-                onClose={() => setOpenModal(false)}
+                onClose={() => {setOpenModal(false); setSelectedProduct(null);}}
                 selectedProduct={selectedProduct}
                 onSuccess={() => {
                     loadProducts(currentPage);

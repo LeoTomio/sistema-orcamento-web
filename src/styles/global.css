@@ -32,6 +32,10 @@ input {
   font-size: 0.95rem;
 }
 
+.form-control:focus {
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, .25) !important
+}
+
 .submitButton {
   background-color: #1B4374 !important;
   color: #ffffff !important;
@@ -53,8 +57,6 @@ input {
 .x-icon {
   cursor: pointer;
 }
-
-
 
 /* Paginação  */
 .custom-pagination .page-item .page-link {
@@ -84,35 +86,6 @@ input {
   background-color: #f8f9fa;
 }
 
-
-@media (max-width: 576px) {
-  table {
-    font-size: 0.8rem;
-  }
-
-  th,
-  td {
-    padding: 0.2rem !important;
-  }
-
-  svg {
-    width: 1.3rem !important;
-    height: 1.3rem !important;
-  }
-}
-
-
-@media (max-width: 576px) {
-  .desktop-table {
-    display: none;
-  }
-}
-
-@media (min-width: 577px) {
-  .mobile-cards {
-    display: none;
-  }
-}
 
 .borderless {
   border-color: transparent;
@@ -148,13 +121,96 @@ input {
   justify-content: center;
 }
 
-
 .subscribe-modal {
   border: 1px solid #ccc;
   width: 100%;
   max-width: 500px
 }
 
+.show-password-icon {
+  border: 1px solid #e5e7eb !important;
+  border-left: none !important;
+}
+
+.show-password-icon:active,
+.show-password-icon:hover {
+  border: 1px solid #e5e7eb !important;
+  color: #000000 !important;
+  background: #ceddf5 !important;
+}
+
+.password-input {
+  border-right: none !important;
+}
+
+.page-container {
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+  border: none !important;
+  margin-bottom: 1.5rem !important;
+  padding: 1rem !important;
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.actions-container > * {
+  margin: 0 0.2rem 0.3rem 0;
+}
+ 
+
+.action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 0.75rem;
+  flex: 1 1 calc(50% - 0.25rem);
+  padding: 3px  !important; 
+}
+
+.action-btn span {
+  margin-left: 4px;
+}
+
+.internal-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: #ffffff;
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
+  border:none !important
+}
+
+.internal-card:hover {
+  transform: translateY(-2px);
+}
+
+
+
+@media (max-width: 576px) {
+  table {
+    font-size: 0.8rem;
+  }
+
+  th,
+  td {
+    padding: 0.2rem !important;
+  }
+
+  svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+  .desktop-table {
+    display: none;
+  }
+}
+
+@media (min-width: 577px) {
+  .mobile-cards {
+    display: none;
+  }
+}
 
 @media (max-width: 768px) {
   .dashboard-tabs .nav {
