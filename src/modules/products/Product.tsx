@@ -9,6 +9,7 @@ import productService from "./Service";
 import type { ProductForm } from "./types";
 import { useLoading } from "../../context/LoadingContext";
 import { formatMoney } from "../../utils/formaters";
+import { itemPerPageEnum } from "../../utils/enum";
 
 function Products() {
     const { endLoading, startLoading } = useLoading();
@@ -131,13 +132,14 @@ function Products() {
                         currentPage={currentPage}
                         totalItems={totalItems}
                         onPageChange={setCurrentPage}
+                        itemPerPage={itemPerPageEnum.product}
                     />
                 </div>
             </Card>
 
             <ProductModal
                 show={openModal}
-                onClose={() => {setOpenModal(false); setSelectedProduct(null);}}
+                onClose={() => { setOpenModal(false); setSelectedProduct(null); }}
                 selectedProduct={selectedProduct}
                 onSuccess={() => {
                     loadProducts(currentPage);

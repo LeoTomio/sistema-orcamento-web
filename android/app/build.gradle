@@ -24,17 +24,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            // opcional: você também pode personalizar o debug
         }
     }
 
-    // 🟩 Aqui é o lugar correto!
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-
             def appName = "MeuApp"
             def buildType = variant.buildType.name
-
             output.outputFileName = "${appName}-${buildType}.apk"
         }
     }
@@ -62,6 +58,7 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
 }
 
+// 🔥 DEIXAR POR ÚLTIMO: CAPACITOR
 apply from: 'capacitor.build.gradle'
 
 try {

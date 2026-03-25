@@ -8,7 +8,7 @@ import Footer from "../../components/Footer";
 import Users from "../user/User";
 
 const Dashboard = () => {
-    const [activeTab, setActiveTab] = useState<string>("products");
+    const [activeTab, setActiveTab] = useState<string>("budgets");
 
     return (
         <div className="d-flex flex-column min-vh-100">

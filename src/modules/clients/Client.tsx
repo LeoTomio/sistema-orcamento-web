@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ClientModal from "./Modal";
 import { formatDocument } from "../../utils/formaters";
 import { useLoading } from "../../context/LoadingContext";
+import { itemPerPageEnum } from "../../utils/enum";
 
 function Clients() {
     const { startLoading, endLoading } = useLoading()
@@ -129,6 +130,7 @@ function Clients() {
                         currentPage={currentPage}
                         totalItems={totalItems}
                         onPageChange={setCurrentPage}
+                        itemPerPage={itemPerPageEnum.client}
                     />
                 </div>
             </Card>

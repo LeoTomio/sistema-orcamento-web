@@ -4,12 +4,17 @@ import { FiletypePdf, PencilFill, TrashFill, VectorPen } from "react-bootstrap-i
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
+import { useLoading } from "../../context/LoadingContext";
 import "../../styles/budget.css";
+import { itemPerPageEnum } from '../../utils/enum';
 import BudgetModal from "./Modal";
 import BudgetService from "./Service";
 import { SignatureModal } from "./SubscribeModal";
 import type { Budget } from "./types";
-import { useLoading } from "../../context/LoadingContext";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { formatMoney } from "../../utils/formaters";
+
 export default function Budgets() {
   const { endLoading, startLoading } = useLoading()
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -61,18 +66,31 @@ export default function Budgets() {
 
   const handleDownloadPdf = async (budget: Budget) => {
     const blob = await BudgetService.generatePdf(budget.id!);
-    const url = window.URL.createObjectURL(blob);
 
+    const url = window.URL.createObjectURL(blob);
+    const fileName = `orcamento-${budget.client?.name}.pdf`;
+
+    // 👉 Se for mobile (Capacitor)
+    if (Capacitor.isNativePlatform()) {
+      // Abre o PDF no navegador externo
+      await Browser.open({
+        url,
+      });
+      return;
+    }
+
+    // 👉 WEB (download normal)
     const link = document.createElement("a");
     link.href = url;
-    link.download = `orcamento-${budget.client?.name}.pdf`;
+    link.download = fileName;
 
     document.body.appendChild(link);
     link.click();
-
     link.remove();
+
     window.URL.revokeObjectURL(url);
   };
+
 
   const openDelete = (budget: Budget) => {
     setSelectedBudget(budget);
@@ -126,7 +144,7 @@ export default function Budgets() {
                     <div className="mb-4">
                       <div className="budget-label">TOTAL</div>
                       <div className="fw-bold fs-4 text-success">
-                        R$ {Number(b.total).toFixed(2)}
+                        R$ {formatMoney(b.total)}
                       </div>
                     </div>
 
@@ -193,6 +211,7 @@ export default function Budgets() {
             currentPage={currentPage}
             totalItems={totalItems}
             onPageChange={setCurrentPage}
+            itemPerPage={itemPerPageEnum.budget}
           />
         </div>
       </Card>
