@@ -14,3 +14,16 @@
     margin-bottom: 0.25rem;
     letter-spacing: 0.3px;
 }
+
+.budget-with-overlay {
+  position: relative;
+}
+
+.budget-with-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: inherit;
+  z-index: 10;
+}

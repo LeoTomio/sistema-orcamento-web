@@ -1,5 +1,6 @@
 import { Spinner, Card } from "react-bootstrap";
 import { useLoading } from "../context/LoadingContext";
+import "../styles/loading.css"
 
 export const LoadingOverlay = () => {
     const { isLoading } = useLoading();

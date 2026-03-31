@@ -1,17 +1,17 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
 import { Plus } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import CustomSelect from "../../components/CustomSelect";
-import { useLoading } from "../../context/LoadingContext";
+import { cacheTime } from "../../utils/enum";
 import { formatMoney } from "../../utils/formaters";
 import ClientModal from "../clients/Modal";
-import ClientService from "../clients/Service";
+import clientService from "../clients/Service";
 import ProductModal from "../products/Modal";
 import productService from "../products/Service";
-import type { ProductForm } from "../products/types";
 import BudgetItemTable from "./ItemTable";
-import BudgetService from "./Service";
+import budgetService from "./Service";
 import type { Budget } from "./types";
 interface Props {
   show: boolean;
@@ -21,53 +21,54 @@ interface Props {
 }
 
 export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }: Props) {
-  const { endLoading, startLoading } = useLoading();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Budget>({
     clientId: "",
     items: [],
     total: 0,
   })
-  const [products, setProducts] = useState<ProductForm[]>([]);
   const [openProductModal, setOpenProductModal] = useState(false);
-
   const [openClientModal, setOpenClientModal] = useState(false);
-  const [clientList, setClientList] = useState<{ value: string, label: string }[]>([])
 
+  const productsQuery = useQuery({
+    queryKey: ["products"],
+    queryFn: () => productService.getAll(),
+    staleTime: cacheTime.fiveMinutes
+  });
 
-  const availableProducts = products
-    .filter((p) => !formData.items.some((i) => i.productId === p.id))
-    .map((p) => ({
-      value: p.id!,
-      label: p.name
-    }))
-    .sort((a: any, b: any) => a.label.localeCompare(b.label));
+  const productOptions = productsQuery.data?.data
+    .filter(product => !formData.items.some(item => item.productId === product.id)) // remove das opções os produtos que já foram adicionados
+    .sort((a, b) => a.name.localeCompare(b.name)) // ordenar por nome
+    .map(product => ({
+      value: product.id!,
+      label: product.name
+    })) ?? [];
 
+  const clientsQuery = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => clientService.getAll(),
+    staleTime: cacheTime.fiveMinutes
+  });
 
-  useEffect(() => {
-    loadProducts();
-    loadClients()
-  }, []);
+  const clientOptions = clientsQuery.data?.data
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(client => ({
+      value: client.id!,
+      label: client.name
+    })) ?? [];
 
-  const loadProducts = async () => {
-    try {
-      startLoading()
-      const response = await productService.getAll();
-      setProducts(response.data);
-    } catch (error) {
-      console.log('erro ->', error)
-    } finally {
-      endLoading()
-    }
-  };
+  const saveMutation = useMutation({
+    mutationFn: async (data: Budget) => {
+      if (selectedBudget) return budgetService.update(data);
 
-  const loadClients = async () => {
-    const response = await ClientService.getAll();
-    const clientOptions = response.data.map((p) => ({
-      value: p.id!,
-      label: p.name
-    })).sort((a: any, b: any) => a.label.localeCompare(b.label));
-    setClientList(clientOptions);
-  };
+      return budgetService.create(data);
+    },
+    onSuccess: () => {
+      onSuccess();
+      handleClose();
+    },
+    onError: () => toast.error("Erro ao salvar orçamento")
+  })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,35 +81,25 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       toast.warning("É necessario ter ao menos 1 item")
       return
     }
-    formData.total = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-
-    try {
-      startLoading()
-      if (selectedBudget) {
-        await BudgetService.update(formData)
-      } else {
-        await BudgetService.create(formData);
-      }
-      onSuccess()
-      clearForm()
-      onClose()
-    } catch (error) {
-      console.log('e->', error)
-    } finally {
-      endLoading()
-    }
+    saveMutation.mutate({
+      ...formData,
+      total: formData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    });
   };
 
-  useEffect(() => {
-    if (!selectedBudget) {
-      clearForm()
-      return
-    }
+  const handleClose = () => {
+    clearForm();
+    onClose();
+  };
 
-    const getBudget = async () => {
+  const budgetQuery = useQuery({
+    queryKey: ["budget", selectedBudget?.id],
+    enabled: !!selectedBudget,
+    refetchOnMount: "always",
+    queryFn: async () => {
       try {
-        const response = await BudgetService.getById(selectedBudget.id!)
-        setFormData({
+        const response = await budgetService.getById(selectedBudget!.id!);
+        return {
           id: response.id,
           clientId: response.clientId,
           total: Number(response.total),
@@ -119,19 +110,30 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
             price: Number(item.price),
             quantity: item.quantity
           }))
-        });
-      } catch (error) {
-        console.error(error);
+        };
+      } catch (err) {
         toast.error("Erro ao carregar orçamento");
-      } finally {
-        endLoading();
+        throw err;
       }
+    },
+  });
+
+
+  useEffect(() => {
+    if (!show) return;
+
+    if (!selectedBudget) {
+      clearForm();
+      return;
     }
-    getBudget()
-  }, [selectedBudget]);
+
+    if (budgetQuery.data) {
+      setFormData(budgetQuery.data);
+    }
+  }, [show, selectedBudget, budgetQuery.data]);
 
   const handleAddProduct = (productId: string) => {
-    const product = products.find(p => p.id === productId);
+    const product = productsQuery.data?.data.find(p => p.id === productId);
     if (!product) return;
 
     setFormData(prev => ({
@@ -149,12 +151,12 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   };
 
   const handleAddClient = (clientId: string) => {
-    const client = clientList.find(c => c.value === clientId);
+    const client = clientsQuery.data?.data.find(c => c.id === clientId);
     if (!client) return;
 
     setFormData(prev => ({
       ...prev,
-      clientId: client.value!,
+      clientId: client.id!,
     }));
   };
 
@@ -171,11 +173,11 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       <Modal
         centered
         show={show}
-        onHide={onClose}
+        onHide={handleClose}
         size="lg"
         contentClassName={openProductModal || openClientModal ? "budget-with-overlay" : ""}>
         <Modal.Header closeButton>
-          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento nº {String(selectedBudget?.number).padStart(4, '0')}</Modal.Title>
+          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento {selectedBudget ? `nº ${String(selectedBudget.number).padStart(4, "0")} ` : ""}</Modal.Title>
         </Modal.Header>
 
         <Form onSubmit={handleSubmit}>
@@ -185,7 +187,13 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
               <Row className="d-flex justify-content-center align-items-center">
                 <Col xs={selectedBudget ? 12 : 9} md={selectedBudget ? 12 : 10} lg={selectedBudget ? 12 : 11}>
                   <CustomSelect
-                    options={clientList}
+                    options={
+                      clientOptions.map(client => ({
+                        value: client.value!,
+                        label: client.label
+                      })) ?? []
+                    }
+                    isLoading={clientsQuery.isLoading}
                     value={formData.clientId}
                     onChange={(value) => {
                       if (value) handleAddClient(String(value));
@@ -202,7 +210,6 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
                   </Col>
                 )}
               </Row>
-
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -210,7 +217,13 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
               <Row className="d-flex justify-content-center align-items-center">
                 <Col xs={9} md={10} lg={11}>
                   <CustomSelect
-                    options={availableProducts}
+                    options={
+                      productOptions.map(product => ({
+                        value: product.value!,
+                        label: product.label
+                      })) ?? []
+                    }
+                    isLoading={productsQuery.isLoading}
                     onChange={(value) => value && handleAddProduct(String(value))}
                     clearOnSelect
                   />
@@ -247,11 +260,11 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
           </Modal.Body>
 
           <Modal.Footer>
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="secondary" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Salvar
+            <Button type="submit" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </Modal.Footer>
         </Form>
@@ -262,10 +275,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         onClose={() => setOpenProductModal(false)}
         selectedProduct={null}
         onSuccess={() => {
-          loadProducts();
-          toast.success(
-            "Produto adicionado com sucesso!"
-          );
+          queryClient.invalidateQueries({ queryKey: ["products"] });
+          toast.success("Produto adicionado com sucesso!");
         }}
         isFromBudget={true}
       />
@@ -275,10 +286,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         onClose={() => setOpenClientModal(false)}
         selectedClient={null}
         onSuccess={() => {
-          loadClients();
-          toast.success(
-            "Cliente adicionado com sucesso!"
-          );
+          queryClient.invalidateQueries({ queryKey: ["clients"] });
+          toast.success("Cliente adicionado com sucesso!");
         }}
         isFromBudget={true}
       />

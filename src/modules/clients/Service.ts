@@ -2,7 +2,7 @@ import { api } from "../../services/api";
 import type { PaginatedResponse } from "../../utils/globalTypes";
 import type { Client } from "./types";
 
-const ClientService = {
+const clientService = {
     async getById(id: string): Promise<Client> {
         const { data } = await api.get(`/client/${id}`);
         return data;
@@ -26,4 +26,4 @@ const ClientService = {
     },
 };
 
-export default ClientService
+export default clientService

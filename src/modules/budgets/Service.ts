@@ -1,14 +1,14 @@
 import { api } from "../../services/api";
-import type { PaginatedResponse, PaginationParams } from "../../utils/globalTypes";
+import type { PaginatedResponse } from "../../utils/globalTypes";
 import type { Budget, BudgetFromApi } from "./types";
 
-const BudgetService = {
+const budgetService = {
     async getById(id: string): Promise<BudgetFromApi> {
         const { data } = await api.get(`/budget/${id}`);
         return data;
     },
 
-    async getAll({ page }: PaginationParams): Promise<PaginatedResponse<Budget>> {
+    async getAll(page: number): Promise<PaginatedResponse<Budget>> {
         const response = await api.get('/budget', { params: { page } });
         return response.data
     },
@@ -42,4 +42,4 @@ const BudgetService = {
     },
 };
 
-export default BudgetService
+export default budgetService

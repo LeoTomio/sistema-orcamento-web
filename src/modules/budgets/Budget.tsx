@@ -1,62 +1,58 @@
-import { useEffect, useState } from "react";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button, Card, Col, Row } from "react-bootstrap";
 import { FiletypePdf, PencilFill, TrashFill, VectorPen } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
-import { useLoading } from "../../context/LoadingContext";
 import "../../styles/budget.css";
-import { itemPerPageEnum } from '../../utils/enum';
+import { cacheTime, itemPerPageEnum } from '../../utils/enum';
+import { formatMoney } from "../../utils/formaters";
 import BudgetModal from "./Modal";
-import BudgetService from "./Service";
+import budgetService from "./Service";
 import { SignatureModal } from "./SubscribeModal";
 import type { Budget } from "./types";
-import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
-import { formatMoney } from "../../utils/formaters";
 
 export default function Budgets() {
-  const { endLoading, startLoading } = useLoading()
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const queryClient = useQueryClient();
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [openSignatureModal, setOpenSignatureModal] = useState(false);
 
-  useEffect(() => {
-    loadBudgets(currentPage);
-  }, [currentPage]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["budgets", currentPage],
+    queryFn: () => budgetService.getAll(currentPage),
+    staleTime: cacheTime.fiveMinutes,
+    refetchOnWindowFocus: false
+  })
 
-  const loadBudgets = async (page: number) => {
-    try {
-      startLoading()
-      const response = await BudgetService.getAll({ page });
-      console.log(response)
-      setBudgets(response.data);
-      setTotalItems(response.total);
-    } catch (error) {
-      console.log('e->', error)
-    } finally {
-      endLoading()
+  const budgets = data?.data || []
+  const totalItems = data?.total || 0
+
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => budgetService.delete(id),
+    onSuccess: () => {
+      toast.success("Orçamento excluído com sucesso!");
+
+      if (budgets.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
     }
-  };
+  })
+
 
   const handleDelete = async () => {
     if (!selectedBudget) return;
 
-    await BudgetService.delete(selectedBudget.id!);
-
-    if (budgets.length === 1 && currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    } else {
-      loadBudgets(currentPage);
-    }
-
-    setSelectedBudget(null);
-    setOpenDeleteModal(false);
-    toast.success("Orçamento excluído com sucesso!");
+    deleteMutation.mutateAsync(selectedBudget.id!)
+    setOpenDeleteModal(false)
   };
 
   const handleEdit = (budget: Budget) => {
@@ -65,7 +61,7 @@ export default function Budgets() {
   };
 
   const handleDownloadPdf = async (budget: Budget) => {
-    const blob = await BudgetService.generatePdf(budget.id!);
+    const blob = await budgetService.generatePdf(budget.id!);
 
     const url = window.URL.createObjectURL(blob);
     const fileName = `orcamento-${budget.client?.name}.pdf`;
@@ -73,9 +69,7 @@ export default function Budgets() {
     // 👉 Se for mobile (Capacitor)
     if (Capacitor.isNativePlatform()) {
       // Abre o PDF no navegador externo
-      await Browser.open({
-        url,
-      });
+      await Browser.open({ url });
       return;
     }
 
@@ -129,73 +123,82 @@ export default function Budgets() {
         </Row>
 
         <Row className="g-4">
-          {budgets.length > 0 ? (
-            budgets.map((b) => (
-              <Col key={b.id} xs={12} md={6} xl={4}>
-                <Card className="h-100 border-0 internal-card">
-                  <Card.Body className="p-3 p-md-4 d-flex flex-column">
-                    <div className="mb-3">
-                      <div className="budget-label">CLIENTE</div>
-                      <div className="fw-semibold fs-6">
-                        {b.client?.name || "-"}
-                      </div>
+          {isLoading &&
+            <Col xs={12}>
+              <Card className="border-0 shadow-sm rounded-4">
+                <Card.Body className="text-center py-5 text-muted">
+                  Carregando...
+                </Card.Body>
+              </Card>
+            </Col>
+          }
+          {!isLoading && budgets.length > 0 && budgets.map((b) => (
+            <Col key={b.id} xs={12} md={6} xl={4}>
+              <Card className="h-100 border-0 internal-card">
+                <Card.Body className="p-3 p-md-4 d-flex flex-column">
+                  <div className="mb-3">
+                    <div className="budget-label">CLIENTE</div>
+                    <div className="fw-semibold fs-6">
+                      {b.client?.name || "-"}
                     </div>
+                  </div>
 
-                    <div className="mb-4">
-                      <div className="budget-label">TOTAL</div>
-                      <div className="fw-bold fs-4 text-success">
-                        R$ {formatMoney(b.total)}
-                      </div>
+                  <div className="mb-4">
+                    <div className="budget-label">TOTAL</div>
+                    <div className="fw-bold fs-4 text-success">
+                      R$ {formatMoney(b.total)}
                     </div>
+                  </div>
 
-                    <div className="mt-auto">
-                      <div className="actions-container">
-                        <Button
-                          variant="outline-success"
-                          size="sm"
-                          className="action-btn"
-                          onClick={() => handleEdit(b)}
-                        >
-                          <PencilFill size={14} />
-                          <span>Editar</span>
-                        </Button>
+                  <div className="mt-auto">
+                    <div className="actions-container">
+                      <Button
+                        variant="outline-success"
+                        size="sm"
+                        className="action-btn"
+                        onClick={() => handleEdit(b)}
+                      >
+                        <PencilFill size={14} />
+                        <span>Editar</span>
+                      </Button>
 
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          className="action-btn"
-                          onClick={() => handleDownloadPdf(b)}
-                        >
-                          <FiletypePdf size={14} />
-                          <span>PDF</span>
-                        </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="action-btn"
+                        onClick={() => handleDownloadPdf(b)}
+                      >
+                        <FiletypePdf size={14} />
+                        <span>PDF</span>
+                      </Button>
 
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          className="action-btn"
-                          onClick={() => openSignature(b)}
-                        >
-                          <VectorPen size={13} />
-                          <span>Assinar</span>
-                        </Button>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        className="action-btn"
+                        onClick={() => openSignature(b)}
+                      >
+                        <VectorPen size={13} />
+                        <span>Assinar</span>
+                      </Button>
 
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          className="action-btn"
-                          onClick={() => openDelete(b)}
-                        >
-                          <TrashFill size={14} />
-                          <span>Excluir</span>
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="action-btn"
+                        onClick={() => openDelete(b)}
+                      >
+                        <TrashFill size={14} />
+                        {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+                      </Button>
                     </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))
-          ) : (
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+
+          {!isLoading && budgets.length === 0 && (
             <Col xs={12}>
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="text-center py-5 text-muted">
@@ -221,10 +224,8 @@ export default function Budgets() {
         onClose={() => setOpenModal(false)}
         selectedBudget={selectedBudget}
         onSuccess={() => {
-          loadBudgets(currentPage);
-          toast.success(
-            `Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`
-          );
+          toast.success(`Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`);
+          queryClient.invalidateQueries({ queryKey: ["budgets"] });
         }}
       />
 

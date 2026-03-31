@@ -1,15 +1,15 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { toast } from "sonner";
-import { v4 as uuid } from "uuid";
+import CustomSelect from "../../components/CustomSelect";
 import RequiredLabel from "../../components/RequiredLabel";
-import { useLoading } from "../../context/LoadingContext";
+import globalService from "../../services/globalService";
+import { cacheTime } from "../../utils/enum";
 import { formatDocument, formatPhone } from "../../utils/formaters";
 import { isValidCNPJ, isValidCPF, onlyNumbers } from "../../utils/validators";
-import ClientService from "./Service";
+import clientService from "./Service";
 import type { Client } from "./types";
-import globalService from "../../services/globalService";
-import CustomSelect from "../../components/CustomSelect";
 
 interface Props {
   show: boolean;
@@ -20,7 +20,6 @@ interface Props {
 }
 
 export default function ClientModal({ show, onClose, selectedClient, onSuccess, isFromBudget }: Props) {
-  const { endLoading, startLoading } = useLoading();
   const [formData, setFormData] = useState<Client>({
     name: "",
     document: "",
@@ -30,33 +29,32 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
     state: "",
     phone: "",
   })
-  const [stateList, setStateList] = useState<{ value: string, label: string }[]>([])
-  const [cityList, setCityList] = useState<{ value: string, label: string }[]>([])
 
-  useEffect(() => {
-    globalService.getStates().then((states) => {
-      const options = states
-        .map((s: any) => ({
-          value: s.sigla,
-          label: `${s.sigla}`,
-        }))
-        .sort((a: any, b: any) => a.label.localeCompare(b.label));
+  const statesQuery = useQuery({
+    queryKey: ["states"],
+    queryFn: () => globalService.getStates(),
+    staleTime: cacheTime.fiveMinutes
+  });
 
-      setStateList(options);
-    });
-  }, []);
+  const citiesQuery = useQuery({
+    queryKey: ["cities", formData.state],
+    queryFn: () => globalService.getCities(formData.state),
+    staleTime: cacheTime.fiveMinutes,
+    enabled: !!formData.state
+  });
 
-  useEffect(() => {
-    globalService.getCities(formData.state).then((cities) => {
-      const options = cities
-        .map((s: any) => ({
-          value: s.nome,
-          label: s.nome,
-        }))
-        .sort((a: any, b: any) => a.label.localeCompare(b.label));
-      setCityList(options);
-    })
-  }, [formData.state])
+  const saveMutation = useMutation({
+    mutationFn: async (data: Client) => {
+      if (selectedClient) return clientService.update(data);
+
+      return clientService.create(data);
+    },
+    onSuccess: () => {
+      onSuccess();
+      handleClose();
+    },
+    onError: () => toast.error("Erro ao salvar cliente")
+  })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -93,24 +91,8 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
       ...formData,
       document: numbers
     };
-    try {
-      startLoading()
-      if (selectedClient) {
-        await ClientService.update(payload)
-      } else {
-        await ClientService.create({
-          ...payload,
-          id: uuid(),
-        });
-      }
-      onSuccess()
-      clearForm()
-      handleClose()
-    } catch (error) {
-      console.log('erro ->', error)
-    } finally {
-      endLoading()
-    }
+
+    saveMutation.mutate(payload);
   };
   const handleClose = () => {
     clearForm();
@@ -134,30 +116,37 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
     }));
   };
 
+  const clientQuery = useQuery({
+    queryKey: ["client", selectedClient?.id],
+    enabled: !!selectedClient,
+    refetchOnMount: "always",
+    queryFn: async () => {
+      try {
+        const response = await clientService.getById(selectedClient!.id!);
+        return {
+          ...response,
+          document: formatDocument(response.document),
+        };
+      } catch (err) {
+        toast.error("Erro ao carregar cliente");
+        throw err;
+      }
+    },
+  });
+
   useEffect(() => {
+    if (!show) return;
+
     if (!selectedClient) {
       clearForm();
       return;
     }
 
-    const loadClient = async () => {
-      try {
-        startLoading();
-        const response = await ClientService.getById(selectedClient.id!);
-        setFormData({
-          ...response,
-          document: formatDocument(response.document)
-        });
+    if (clientQuery.data) {
+      setFormData(clientQuery.data);
+    }
+  }, [show, selectedClient, clientQuery.data]);
 
-      } catch (error) {
-        toast.error("Erro ao carregar cliente");
-      } finally {
-        endLoading();
-      }
-    };
-
-    loadClient();
-  }, [selectedClient]);
 
   const clearForm = () => {
     setFormData({
@@ -169,7 +158,6 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
       state: "",
       phone: "",
     })
-    setCityList([])
 
   }
 
@@ -181,7 +169,7 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
       size="lg"
       backdrop={isFromBudget ? false : "static"}
     >
-      <Modal.Header closeButton>
+      <Modal.Header closeButton onHide={handleClose}>
         <Modal.Title>{selectedClient ? "Editar" : "Novo"} Cliente</Modal.Title>
       </Modal.Header>
 
@@ -229,10 +217,15 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
               <Form.Group className="mb-2">
                 <Form.Label>Estado</Form.Label>
                 <CustomSelect
-                  options={stateList}
+                  options={statesQuery.data?.map((s: any) => ({
+                    value: s.sigla,
+                    label: `${s.sigla}`,
+                  }))
+                    .sort((a: any, b: any) => a.label.localeCompare(b.label)) || []}
                   value={formData.state}
+                  isLoading={statesQuery.isLoading}
                   onChange={(value) =>
-                    setFormData({ ...formData, state: String(value) })
+                    setFormData({ ...formData, state: String(value), city: "" })
                   }
                 />
               </Form.Group>
@@ -242,8 +235,12 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
               <Form.Group className="mb-2">
                 <Form.Label>Cidade</Form.Label>
                 <CustomSelect
-                  options={cityList}
+                  options={citiesQuery.data?.map((s: any) => ({
+                    value: s.nome,
+                    label: s.nome,
+                  })).sort((a: any, b: any) => a.label.localeCompare(b.label)) || []}
                   value={formData.city}
+                  isLoading={citiesQuery.isLoading}
                   onChange={(value) =>
                     setFormData({ ...formData, city: String(value) })
                   }
@@ -279,11 +276,11 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={handleClose}>
             Cancelar
           </Button>
-          <Button type="submit">
-            Salvar
+          <Button type="submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? "Salvando..." : "Salvar"}
           </Button>
         </Modal.Footer>
       </Form>

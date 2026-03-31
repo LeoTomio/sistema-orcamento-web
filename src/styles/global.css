@@ -95,32 +95,6 @@ input {
   z-index: 2000 !important;
 }
 
-.budget-with-overlay {
-  position: relative;
-}
-
-.budget-with-overlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: inherit;
-  z-index: 10;
-}
-
-.loading-card {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1050;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .subscribe-modal {
   border: 1px solid #ccc;
   width: 100%;
@@ -158,8 +132,7 @@ input {
 
 .actions-container > * {
   margin: 0 0.2rem 0.3rem 0;
-}
- 
+} 
 
 .action-btn {
   display: flex !important;
@@ -184,7 +157,6 @@ input {
 .internal-card:hover {
   transform: translateY(-2px);
 }
-
 
 
 @media (max-width: 576px) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Card, Col, Row } from "react-bootstrap";
 import { PencilFill, TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
@@ -7,51 +7,52 @@ import PaginationComponent from "../../components/Pagination";
 import ProductModal from "./Modal";
 import productService from "./Service";
 import type { ProductForm } from "./types";
-import { useLoading } from "../../context/LoadingContext";
 import { formatMoney } from "../../utils/formaters";
-import { itemPerPageEnum } from "../../utils/enum";
+import { cacheTime, itemPerPageEnum } from "../../utils/enum";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 function Products() {
-    const { endLoading, startLoading } = useLoading();
-    const [products, setProducts] = useState<ProductForm[]>([]);
+    const queryClient = useQueryClient();
+
     const [selectedProduct, setSelectedProduct] = useState<ProductForm | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
-    const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
-    useEffect(() => {
-        loadProducts(currentPage);
-    }, [currentPage]);
+    const { data, isLoading } = useQuery({
+        queryKey: ["products", currentPage],
+        queryFn: () => productService.getAll(currentPage),
+        staleTime: cacheTime.fiveMinutes,
+        refetchOnWindowFocus: false,
+    });
 
-    const loadProducts = async (page: number = 1) => {
-        try {
-            startLoading();
-            const response = await productService.getAll(page);
-            setProducts(response.data);
-            setTotalItems(response.total);
-        } catch (error) {
-            console.log("e->", error);
-        } finally {
-            endLoading();
+    const products = data?.data || [];
+    const totalItems = data?.total || 0;
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => productService.delete(id),
+        onSuccess: () => {
+            toast.success("Produto excluído com sucesso!");
+
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            
+            setTimeout(() => {
+                if (products.length === 1 && currentPage > 1) {
+                    setCurrentPage(prev => prev - 1);
+                }
+            });
+        },
+        onSettled: () => {
+            setOpenDeleteModal(false);
         }
-    };
+    });
 
     const handleDelete = async () => {
         if (!selectedProduct) return;
 
-        await productService.delete(selectedProduct.id!);
-
-        if (products.length === 1 && currentPage > 1) {
-            setCurrentPage((prev) => prev - 1);
-        } else {
-            loadProducts(currentPage);
-        }
-
-        setSelectedProduct(null);
-        setOpenDeleteModal(false);
-        toast.success("Produto excluído com sucesso!");
+        await deleteMutation.mutateAsync(selectedProduct.id!);
     };
 
     const handleEdit = (product: ProductForm) => {
@@ -66,9 +67,7 @@ function Products() {
                     <Col xs={12} md={8}>
                         <div className="mb-3">
                             <h5 className="mb-1">Produtos</h5>
-                            <small className="text-muted">
-                                Gerencie os produtos cadastrados
-                            </small>
+                            <small className="text-muted">Gerencie os produtos cadastrados</small>
                         </div>
                     </Col>
                     <Col xs={12} md={4} className="text-md-end">
@@ -84,47 +83,71 @@ function Products() {
                     </Col>
                 </Row>
 
-                {/* LISTA DE CARDS */}
-                <Row xs={1} sm={2} md={3} lg={3} className="g-3">
-                    {products.length > 0 &&
-                        products.map((p) => (
-                            <Col key={p.id}>
-                                <Card className="h-100 internal-card">
-                                    <Card.Body className="d-flex flex-column">
-                                        <Card.Title className="fw-bold">{p.name}</Card.Title>
+                {/* LISTA */}
+                <Row className="g-3">
+                    {isLoading &&
+                        <Col xs={12}>
+                            <Card className="border-0 shadow-sm rounded-4">
+                                <Card.Body className="text-center py-5 text-muted">
+                                    Carregando...
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    }
 
-                                        <Card.Text className="text-muted mb-3">
-                                            <strong>Preço:</strong> R$ {formatMoney(Number(p.price))}
-                                        </Card.Text>
-                                        <div className="mt-auto">
-                                            <div className="actions-container">
-                                                <Button
-                                                    variant="outline-success"
-                                                    size="sm"
-                                                    className="action-btn"
-                                                    onClick={() => handleEdit(p)}
-                                                >
-                                                    <PencilFill size={14} />
-                                                    <span>Editar</span>
-                                                </Button>
-                                                <Button
-                                                    variant="outline-danger"
-                                                    size="sm"
-                                                    className="action-btn"
-                                                    onClick={() => {
-                                                        setSelectedProduct(p);
-                                                        setOpenDeleteModal(true);
-                                                    }}
-                                                >
-                                                    <TrashFill size={14} />
-                                                    <span>Excluir</span>
-                                                </Button>
-                                            </div>
+                    {!isLoading && products.length > 0 && products.map((p: ProductForm) => (
+                        <Col xs={1} sm={2} md={3} lg={3} key={p.id}>
+                            <Card className="h-100 internal-card">
+                                <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="fw-bold">{p.name}</Card.Title>
+
+                                    <Card.Text className="text-muted mb-3">
+                                        <strong>Preço:</strong> R$ {formatMoney(Number(p.price))}
+                                    </Card.Text>
+
+                                    <div className="mt-auto">
+                                        <div className="actions-container">
+                                            <Button
+                                                variant="outline-success"
+                                                size="sm"
+                                                className="action-btn"
+                                                onClick={() => handleEdit(p)}
+                                            >
+                                                <PencilFill size={14} />
+                                                <span>Editar</span>
+                                            </Button>
+
+                                            <Button
+                                                variant="outline-danger"
+                                                size="sm"
+                                                className="action-btn"
+                                                disabled={deleteMutation.isPending}
+                                                onClick={() => {
+                                                    setSelectedProduct(p);
+                                                    setOpenDeleteModal(true);
+                                                }}
+                                            >
+                                                <TrashFill size={14} />
+                                                <span>
+                                                    {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+                                                </span>
+                                            </Button>
                                         </div>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        ))}
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+
+                    {!isLoading && products.length === 0 && (
+                        <Col xs={12}>
+                            <Card className="border-0 shadow-sm rounded-4">
+                                <Card.Body className="text-center py-5 text-muted">
+                                    Nenhum produto encontrado.
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    )}
                 </Row>
 
                 <div className="mt-4">
@@ -139,13 +162,14 @@ function Products() {
 
             <ProductModal
                 show={openModal}
-                onClose={() => { setOpenModal(false); setSelectedProduct(null); }}
+                onClose={() => {
+                    setOpenModal(false);
+                    setSelectedProduct(null);
+                }}
                 selectedProduct={selectedProduct}
                 onSuccess={() => {
-                    loadProducts(currentPage);
-                    toast.success(
-                        `Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`
-                    );
+                    toast.success(`Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`);
+                    queryClient.invalidateQueries({ queryKey: ["products"] });
                 }}
             />
 
@@ -155,8 +179,8 @@ function Products() {
                 message={`Deseja excluir o produto "${selectedProduct?.name}"?`}
                 onConfirm={handleDelete}
                 onCancel={() => {
-                    setSelectedProduct(null);
                     setOpenDeleteModal(false);
+                    setSelectedProduct(null);
                 }}
             />
         </>

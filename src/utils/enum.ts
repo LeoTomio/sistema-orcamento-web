@@ -3,3 +3,7 @@ export const itemPerPageEnum = {
     product: 6,
     client: 6
 }
+
+export const cacheTime = {
+    fiveMinutes: 5 * 60 * 1000
+}

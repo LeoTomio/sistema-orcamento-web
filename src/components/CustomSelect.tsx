@@ -12,17 +12,19 @@ type CustomSelectProps = {
   placeholder?: string;
   clearOnSelect?: boolean;
   disabled?: boolean
+  isLoading?: boolean;
 };
 
-const CustomSelect = ({ options, value, onChange, placeholder = "Selecione", clearOnSelect = false, disabled }: CustomSelectProps) => {
+const CustomSelect = ({ options, value, onChange, placeholder = "Selecione", clearOnSelect = false, disabled, isLoading }: CustomSelectProps) => {
   const inputHeight = "2.8rem";
   const selectedOption = options.find(o => o.value === value);
 
   return (
     <Select
       options={options}
-      value={clearOnSelect ? null : selectedOption}
+      value={clearOnSelect ? null : (selectedOption ?? null)}
       placeholder={placeholder}
+      isLoading={isLoading}
       isDisabled={disabled}
       onChange={(selected) => {
         onChange(selected?.value);

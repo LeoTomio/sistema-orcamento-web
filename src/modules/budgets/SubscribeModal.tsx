@@ -3,7 +3,7 @@ import { Button, Modal } from "react-bootstrap";
 import SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
 import { useLoading } from "../../context/LoadingContext";
-import BudgetService from "./Service";
+import budgetService from "./Service";
 
 interface SignatureModalProps {
     show: boolean
@@ -31,7 +31,7 @@ export function SignatureModal({ show, onClose, budgetId }: SignatureModalProps)
                 .toDataURL("image/png");
 
 
-            await BudgetService.updateSignature(budgetId, base64);
+            await budgetService.updateSignature(budgetId, base64);
             toast.success("Assinatura salva com sucesso!");
             onClose();
         } catch (error) {

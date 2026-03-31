@@ -1,16 +1,17 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
-import { useLoading } from "../../context/LoadingContext";
+import { cacheTime } from "../../utils/enum";
 import { formatPhone } from "../../utils/formaters";
 import { onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
-import { Eye, EyeSlash } from "react-bootstrap-icons";
 
 function Users() {
-    const { startLoading, endLoading } = useLoading()
+    const queryClient = useQueryClient()
     const [userData, setUserData] = useState<User>({
         name: "",
         phone: "",
@@ -24,26 +25,37 @@ function Users() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const { data } = useQuery({
+        queryKey: ["user"],
+        queryFn: () => userService.getUser(),
+        staleTime: cacheTime.fiveMinutes,
+        refetchOnWindowFocus: false
+    })
+
+    const user = data as User
+
     useEffect(() => {
-        loadUser();
-    }, []);
+        if (!user) return;
 
-    const loadUser = async () => {
-        try {
-            startLoading();
-            const response = await userService.getUser();
-            setUserData({
-                ...response,
-                password: "",
-                confirmPassword: ""
-            });
-        } catch (error) {
+        setUserData({
+            ...user,
+            password: "",
+            confirmPassword: ""
+        });
 
-        } finally {
-            endLoading()
+    }, [user]);
+
+    const saveMutation = useMutation({
+        mutationFn: (user: User) => userService.updateUser(user),
+        onSuccess: () => {
+            toast.success("Usuário atualizado com sucesso")
+            queryClient.invalidateQueries({ queryKey: ["user"] });
+        },
+
+        onError: () => {
+            toast.error('Erro ao atualizar usuário')
         }
-    };
-
+    })
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -85,15 +97,7 @@ function Users() {
             ...(userData.password ? { password: userData.password } : {})
         };
 
-        try {
-            startLoading()
-            await userService.updateUser(payload)
-            toast.success('Usuário atualizado com sucesso')
-        } catch (error) {
-            toast.error('Erro ao atualizar usuário')
-        } finally {
-            endLoading()
-        }
+        saveMutation.mutate(payload);
     }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +175,6 @@ function Users() {
                                         name="password"
                                         value={userData.password || ""}
                                         onChange={handleChange}
-                                        required
                                         placeholder="********"
                                         className="password-input"
                                     />
@@ -196,7 +199,6 @@ function Users() {
                                         name="confirmPassword"
                                         value={userData.confirmPassword}
                                         onChange={handleChange}
-                                        required
                                         placeholder="********"
                                         className="password-input"
                                     />
@@ -214,8 +216,8 @@ function Users() {
                             </Form.Group>
                         </Col>
                         <Col xs={12}>
-                            <Button className="w-100 mt-4" type="submit">
-                                Salvar
+                            <Button className="w-100 mt-4" type="submit" disabled={saveMutation.isPending}>
+                                {saveMutation.isPending ? "Salvando..." : "Salvar"}
                             </Button>
                         </Col>
                     </Row>
