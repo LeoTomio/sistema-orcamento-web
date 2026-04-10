@@ -6,7 +6,7 @@ import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
 import ProductModal from "./Modal";
 import productService from "./Service";
-import type { ProductForm } from "./types";
+import type { Product, ProductForm } from "./types";
 import { formatMoney } from "../../utils/formaters";
 import { cacheTime, itemPerPageEnum } from "../../utils/enum";
 
@@ -37,7 +37,7 @@ function Products() {
             toast.success("Produto excluído com sucesso!");
 
             queryClient.invalidateQueries({ queryKey: ["products"] });
-            
+
             setTimeout(() => {
                 if (products.length === 1 && currentPage > 1) {
                     setCurrentPage(prev => prev - 1);
@@ -95,14 +95,14 @@ function Products() {
                         </Col>
                     }
 
-                    {!isLoading && products.length > 0 && products.map((p: ProductForm) => (
+                    {!isLoading && products.length > 0 && products.map((p: Product) => (
                         <Col xs={1} sm={2} md={3} lg={3} key={p.id}>
                             <Card className="h-100 internal-card">
                                 <Card.Body className="d-flex flex-column">
                                     <Card.Title className="fw-bold">{p.name}</Card.Title>
 
                                     <Card.Text className="text-muted mb-3">
-                                        <strong>Preço:</strong> R$ {formatMoney(Number(p.price))}
+                                        <strong>Preço:</strong> R$ {formatMoney(p.price)}
                                     </Card.Text>
 
                                     <div className="mt-auto">
@@ -159,19 +159,19 @@ function Products() {
                     />
                 </div>
             </Card>
-
-            <ProductModal
-                show={openModal}
-                onClose={() => {
-                    setOpenModal(false);
-                    setSelectedProduct(null);
-                }}
-                selectedProduct={selectedProduct}
-                onSuccess={() => {
-                    toast.success(`Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`);
-                    queryClient.invalidateQueries({ queryKey: ["products"] });
-                }}
-            />
+            {openModal &&
+                <ProductModal
+                    show={openModal}
+                    onClose={() => {
+                        setOpenModal(false);
+                        setSelectedProduct(null);
+                    }}
+                    selectedProduct={selectedProduct}
+                    onSuccess={() => {
+                        toast.success(`Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`);
+                        queryClient.invalidateQueries({ queryKey: ["products"] });
+                    }}
+                />}
 
             <ConfirmModal
                 show={openDeleteModal}

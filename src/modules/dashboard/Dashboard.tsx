@@ -6,6 +6,7 @@ import Products from "../products/Product";
 import Clients from "../clients/Client";
 import Footer from "../../components/Footer";
 import Users from "../user/User";
+import Materials from "../materials/Material";
 
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState<string>("budgets");
@@ -30,6 +31,9 @@ const Dashboard = () => {
                     </Tab>
                     <Tab eventKey="clients" title="Clientes">
                         <Clients />
+                    </Tab>
+                    <Tab eventKey="material" title="Material">
+                        <Materials />
                     </Tab>
                     <Tab eventKey="user" title="Usuário">
                         <Users />

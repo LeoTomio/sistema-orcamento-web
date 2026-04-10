@@ -17,7 +17,7 @@ import type { Budget } from "./types";
 
 export default function Budgets() {
   const queryClient = useQueryClient();
-  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,12 +51,12 @@ export default function Budgets() {
   const handleDelete = async () => {
     if (!selectedBudget) return;
 
-    deleteMutation.mutateAsync(selectedBudget.id!)
+    deleteMutation.mutateAsync(selectedBudget!)
     setOpenDeleteModal(false)
   };
 
-  const handleEdit = (budget: Budget) => {
-    setSelectedBudget(budget);
+  const handleEdit = (id: string) => {
+    setSelectedBudget(id);
     setOpenModal(true);
   };
 
@@ -86,13 +86,13 @@ export default function Budgets() {
   };
 
 
-  const openDelete = (budget: Budget) => {
-    setSelectedBudget(budget);
+  const openDelete = (id: string) => {
+    setSelectedBudget(id);
     setOpenDeleteModal(true);
   };
 
-  const openSignature = (budget: Budget) => {
-    setSelectedBudget(budget);
+  const openSignature = (id: string) => {
+    setSelectedBudget(id);
     setOpenSignatureModal(true);
   };
 
@@ -156,7 +156,7 @@ export default function Budgets() {
                         variant="outline-success"
                         size="sm"
                         className="action-btn"
-                        onClick={() => handleEdit(b)}
+                        onClick={() => handleEdit(b.id!)}
                       >
                         <PencilFill size={14} />
                         <span>Editar</span>
@@ -176,7 +176,7 @@ export default function Budgets() {
                         variant="outline-secondary"
                         size="sm"
                         className="action-btn"
-                        onClick={() => openSignature(b)}
+                        onClick={() => openSignature(b.id!)}
                       >
                         <VectorPen size={13} />
                         <span>Assinar</span>
@@ -186,7 +186,7 @@ export default function Budgets() {
                         variant="outline-danger"
                         size="sm"
                         className="action-btn"
-                        onClick={() => openDelete(b)}
+                        onClick={() => openDelete(b.id!)}
                       >
                         <TrashFill size={14} />
                         {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
@@ -218,17 +218,17 @@ export default function Budgets() {
           />
         </div>
       </Card>
-
-      <BudgetModal
-        show={openModal}
-        onClose={() => setOpenModal(false)}
-        selectedBudget={selectedBudget}
-        onSuccess={() => {
-          toast.success(`Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`);
-          queryClient.invalidateQueries({ queryKey: ["budgets"] });
-        }}
-      />
-
+      {openModal &&
+        <BudgetModal
+          show={openModal}
+          onClose={() => setOpenModal(false)}
+          selectedBudget={selectedBudget}
+          onSuccess={() => {
+            toast.success(`Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`);
+            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+          }}
+        />
+      }
       <ConfirmModal
         show={openDeleteModal}
         title="Confirmar Exclusão"
@@ -242,7 +242,7 @@ export default function Budgets() {
 
       <SignatureModal
         show={openSignatureModal}
-        budgetId={selectedBudget?.id!}
+        budgetId={selectedBudget!}
         onClose={() => setOpenSignatureModal(false)}
       />
     </>

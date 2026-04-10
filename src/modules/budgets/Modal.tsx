@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { Plus } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import CustomSelect from "../../components/CustomSelect";
+import RequiredLabel from "../../components/RequiredLabel";
 import { cacheTime } from "../../utils/enum";
 import { formatMoney } from "../../utils/formaters";
 import ClientModal from "../clients/Modal";
 import clientService from "../clients/Service";
+import materialService from "../materials/Service";
 import ProductModal from "../products/Modal";
 import productService from "../products/Service";
 import BudgetItemTable from "./ItemTable";
@@ -16,7 +18,7 @@ import type { Budget } from "./types";
 interface Props {
   show: boolean;
   onClose: () => void;
-  selectedBudget: Budget | null
+  selectedBudget: string | null
   onSuccess: () => void;
 }
 
@@ -26,23 +28,13 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     clientId: "",
     items: [],
     total: 0,
+    labor: 0
   })
+  const [formattedLabor, setFormattedLabor] = useState("0,00");
+  const [itemsTotal, setItemsTotal] = useState(0);
   const [openProductModal, setOpenProductModal] = useState(false);
   const [openClientModal, setOpenClientModal] = useState(false);
-
-  const productsQuery = useQuery({
-    queryKey: ["products"],
-    queryFn: () => productService.getAll(),
-    staleTime: cacheTime.fiveMinutes
-  });
-
-  const productOptions = productsQuery.data?.data
-    .filter(product => !formData.items.some(item => item.productId === product.id)) // remove das opções os produtos que já foram adicionados
-    .sort((a, b) => a.name.localeCompare(b.name)) // ordenar por nome
-    .map(product => ({
-      value: product.id!,
-      label: product.name
-    })) ?? [];
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
   const clientsQuery = useQuery({
     queryKey: ["clients"],
@@ -56,6 +48,37 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       value: client.id!,
       label: client.name
     })) ?? [];
+
+  const productsQuery = useQuery({
+    queryKey: ["products"],
+    queryFn: () => productService.getToBudget(),
+    staleTime: cacheTime.fiveMinutes
+  });
+  const productOptions = productsQuery.data?.sort((a, b) => a.name.localeCompare(b.name))
+    .map(product => ({
+      value: product.id!,
+      label: product.name
+    })) ?? [];
+
+  const materialQuery = useQuery({
+    queryKey: ["budget-materials"],
+    queryFn: () => materialService.getToBudget(),
+    staleTime: cacheTime.fiveMinutes
+  });
+
+  const materialsMap = useMemo(() => {
+    if (!materialQuery.data) return new Map();
+
+    const sorted = [...materialQuery.data].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    const map = new Map();
+    sorted.forEach(m => map.set(m.id, m));
+
+    return map;
+  }, [materialQuery.data]);
+
 
   const saveMutation = useMutation({
     mutationFn: async (data: Budget) => {
@@ -81,6 +104,13 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
       toast.warning("É necessario ter ao menos 1 item")
       return
     }
+
+    items.map((item) => {
+      item.materials?.map((m) => {
+        m.unitPrice = Number(String(m.unitPrice).replace(/\./g, "").replace(",", "."));
+      })
+    })
+
     saveMutation.mutate({
       ...formData,
       total: formData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
@@ -93,31 +123,48 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   };
 
   const budgetQuery = useQuery({
-    queryKey: ["budget", selectedBudget?.id],
+    queryKey: ["budget", selectedBudget],
     enabled: !!selectedBudget,
     refetchOnMount: "always",
     queryFn: async () => {
       try {
-        const response = await budgetService.getById(selectedBudget!.id!);
+        const response = await budgetService.getById(selectedBudget!);
+
         return {
           id: response.id,
           clientId: response.clientId,
           total: Number(response.total),
-          items: response.items.map((item) => ({
+          labor: Number(response.labor),
+          number: response.number,
+          items: response.items.map(item => ({
             id: item.id,
             productId: item.product.id,
             name: item.product.name,
+            quantity: item.quantity,
             price: Number(item.price),
-            quantity: item.quantity
+
+            width: item.width,
+            height: item.height,
+            hasWidth: item.product.hasWidth,
+            hasHeight: item.product.hasHeight,
+
+            materials: item.materials?.map(m => ({
+              id: m.id,
+              materialId: m.material.id,
+              name: m.material.name,
+              calcType: m.calcType,
+              quantity: m.quantity,
+              unitPrice: Number(m.unitPrice),
+              total: Number(m.total)
+            })) || []
           }))
-        };
+        } as Budget;
       } catch (err) {
         toast.error("Erro ao carregar orçamento");
         throw err;
       }
-    },
+    }
   });
-
 
   useEffect(() => {
     if (!show) return;
@@ -129,26 +176,48 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
     if (budgetQuery.data) {
       setFormData(budgetQuery.data);
+
+      setFormattedLabor(
+        budgetQuery.data.labor ? budgetQuery.data.labor.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) : "0,00"
+      );
     }
   }, [show, selectedBudget, budgetQuery.data]);
 
   const handleAddProduct = (productId: string) => {
-    const product = productsQuery.data?.data.find(p => p.id === productId);
+    const product = productsQuery.data?.find(p => p.id === productId);
     if (!product) return;
 
+    // calcular materiais iniciais do produto
+    const materials = product.materials.map(mat => ({
+      materialId: mat.id,
+      name: mat.name,
+      calcType: mat.calcType,
+      quantity: mat.quantity,
+      unitPrice: mat.price,
+      total: mat.quantity * mat.price
+    }));
     setFormData(prev => ({
       ...prev,
       items: [
         ...prev.items,
         {
-          productId: product.id!,
+          productId: product.id,
           name: product.name,
           price: Number(product.price),
-          quantity: 1
+          quantity: 1,
+          width: product.hasWidth ? 1 : undefined,
+          height: product.hasHeight ? 1 : undefined,
+          hasWidth: product.hasWidth,
+          hasHeight: product.hasHeight,
+          materials
         }
       ]
     }));
   };
+
 
   const handleAddClient = (clientId: string) => {
     const client = clientsQuery.data?.data.find(c => c.id === clientId);
@@ -160,14 +229,34 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     }));
   };
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+
+    // extrai apenas números
+    const onlyNumbers = raw.replace(/\D/g, "");
+    const cents = Number(onlyNumbers) || 0;
+
+    // salva no estado (valor real)
+    const numericValue = cents / 100;
+
+    setFormData(prev => ({ ...prev, labor: numericValue }));
+
+    // exibe formatado no input
+    setFormattedLabor(
+      numericValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+  };
   const clearForm = () => {
     setFormData({
       clientId: "",
       items: [],
       total: 0,
+      labor: 0
     })
   }
-
   return (
     <>
       <Modal
@@ -177,13 +266,13 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         size="lg"
         contentClassName={openProductModal || openClientModal ? "budget-with-overlay" : ""}>
         <Modal.Header closeButton>
-          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento {selectedBudget ? `nº ${String(selectedBudget.number).padStart(4, "0")} ` : ""}</Modal.Title>
+          <Modal.Title> {selectedBudget ? "Editar" : "Novo"} Orçamento {selectedBudget ? `nº ${String(formData.number).padStart(4, "0")} ` : ""}</Modal.Title>
         </Modal.Header>
 
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
             <Form.Group className="mb-3">
-              <Form.Label>Nome do Cliente</Form.Label>
+              <RequiredLabel>Cliente</RequiredLabel>
               <Row className="d-flex justify-content-center align-items-center">
                 <Col xs={selectedBudget ? 12 : 9} md={selectedBudget ? 12 : 10} lg={selectedBudget ? 12 : 11}>
                   <CustomSelect
@@ -217,15 +306,17 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
               <Row className="d-flex justify-content-center align-items-center">
                 <Col xs={9} md={10} lg={11}>
                   <CustomSelect
-                    options={
-                      productOptions.map(product => ({
-                        value: product.value!,
-                        label: product.label
-                      })) ?? []
-                    }
-                    isLoading={productsQuery.isLoading}
-                    onChange={(value) => value && handleAddProduct(String(value))}
-                    clearOnSelect
+                    options={productOptions}
+                    value={selectedProduct}
+                    onChange={(value) => {
+                      setSelectedProduct(String(value) ?? null);
+
+                      if (value) {
+                        handleAddProduct(String(value));
+                        setSelectedProduct(null);
+                      }
+                    }}
+                    placeholder="Selecione um produto"
                   />
                 </Col>
 
@@ -246,17 +337,24 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
                   items
                 }))
               }
+              products={productsQuery.data ?? []}
+              materialsMap={materialsMap}
+              onTotalChange={setItemsTotal}
             />
 
-            <hr className="mt-5" />
-            <Table>
-              <tbody>
-                <tr className="borderless">
-                  <td>Total</td>
-                  <td className="text-end"> R$ {formatMoney(formData.items.reduce((acc, item) => acc + (item.price * item.quantity), 0))}</td>
-                </tr>
-              </tbody>
-            </Table>
+            <Form.Group className="mb-3">
+              <Form.Label>Mão de obra R$</Form.Label>
+              <Form.Control
+                name="labor"
+                value={formattedLabor}
+                onChange={handleChange}
+              />
+            </Form.Group>
+            <hr className="mt-4" />
+            <div className="d-flex justify-content-between px-2">
+              <h5>Total</h5>
+              <h5 className="fw-bold text-success">R$ {formatMoney(Number(formData.labor ?? 0) + itemsTotal)}</h5>
+            </div>
           </Modal.Body>
 
           <Modal.Footer>

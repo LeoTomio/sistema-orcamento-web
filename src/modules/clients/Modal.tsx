@@ -170,7 +170,7 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
       backdrop={isFromBudget ? false : "static"}
     >
       <Modal.Header closeButton onHide={handleClose}>
-        <Modal.Title>{selectedClient ? "Editar" : "Novo"} Cliente</Modal.Title>
+        <Modal.Title>{selectedClient ? "Editar" : "Cadastrar"} Cliente</Modal.Title>
       </Modal.Header>
 
       <Form onSubmit={handleSubmit}>

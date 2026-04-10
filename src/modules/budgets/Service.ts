@@ -1,9 +1,9 @@
 import { api } from "../../services/api";
 import type { PaginatedResponse } from "../../utils/globalTypes";
-import type { Budget, BudgetFromApi } from "./types";
+import type { Budget, BudgetResponse } from "./types";
 
 const budgetService = {
-    async getById(id: string): Promise<BudgetFromApi> {
+    async getById(id: string): Promise<BudgetResponse> {
         const { data } = await api.get(`/budget/${id}`);
         return data;
     },

@@ -1,5 +1,6 @@
 import { onlyNumbers } from "./validators";
 
+
 export function formatMoney(value: number): string {
   if (!value) return "0,00";
 

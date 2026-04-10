@@ -1,11 +1,14 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal, Row, Col, Table } from "react-bootstrap";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
-import { formatMoney } from "../../utils/formaters";
 import productService from "./Service";
+import materialService from "../materials/Service";
 import type { Product, ProductForm } from "./types";
+import { cacheTime } from "../../utils/enum";
+import { TrashFill } from "react-bootstrap-icons";
+import { formatMoney } from "../../utils/formaters";
 
 interface Props {
     show: boolean;
@@ -18,13 +21,29 @@ interface Props {
 export default function ProductModal({ onClose, show, selectedProduct, onSuccess, isFromBudget }: Props) {
     const [formData, setFormData] = useState<ProductForm>({
         name: "",
-        price: "",
+        hasHeight: true,
+        hasWidth: true,
+        materials: []
     });
+
+    const materialsQuery = useQuery({
+        queryKey: ["materials"],
+        queryFn: () => materialService.getAll(),
+        staleTime: cacheTime.fiveMinutes
+    });
+
+    const availableOptions =
+        materialsQuery.data?.data
+            .filter(m => !formData.materials.some(item => item.materialId === m.id))
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(m => ({ value: m.id!, label: m.name, price: m.price })) ?? [];
 
     const saveMutation = useMutation({
         mutationFn: async (data: Product) => {
-            if (selectedProduct) return productService.update(data);
-
+            if (selectedProduct) return productService.update({
+                ...data,
+                id: selectedProduct.id
+            });
             return productService.create(data);
         },
         onSuccess: () => {
@@ -36,74 +55,89 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const { name, price } = formData;
 
-        if (!name) return toast.warning("Campo nome é obrigatório");
-        if (!price) return toast.warning("Campo preço é obrigatório");
+        if (!formData.name.trim()) return toast.warning("Campo nome é obrigatório");
+        if (formData.materials.length === 0) return toast.warning("Adicione ao menos 1 material");
 
-        const priceNumber = Number(String(price).replace(/\./g, "").replace(",", "."));
-        if (isNaN(priceNumber)) return toast.warning("Preço inválido");
+        const price = formData.materials.reduce((acc, item) => {
+            const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
+            return acc + (Number(mat?.price) ?? 0) * item.quantity;
+        }, 0);
 
-        const payload: Product = {
-            ...formData,
-            price: priceNumber
-        };
-
+        const payload: Product = { ...formData, price };
         saveMutation.mutate(payload);
     };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-
-        if (name === "price") {
-            const onlyNumbers = value.replace(/\D/g, "");
-            const cents = Number(onlyNumbers) || 0;
-
-            const formatted = (cents / 100).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
-
-            setFormData(prev => ({ ...prev, price: formatted }));
-            return;
-        }
-
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, checked, type } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     };
 
-    const handlePriceBlur = () => {
-        if (!formData.price) return;
-
-        const numberValue = Number(formData.price);
-        if (isNaN(numberValue)) return;
-
-        const formatted = formatMoney(numberValue);
+    const handleAddMaterial = (materialId: string) => {
+        const mat = materialsQuery.data?.data.find(m => m.id === materialId);
+        if (!mat) return;
 
         setFormData(prev => ({
             ...prev,
-            price: formatted
+            materials: [
+                ...prev.materials,
+                {
+                    materialId: mat.id!,
+                    quantity: 1,
+                    calc_type: "AREA" // área como padrão mais comum
+                }
+            ]
         }));
     };
 
-    useEffect(() => {
-        if (!show) return;
+    const updateMaterial = (index: number, field: string, value: any) => {
+        const updated = [...formData.materials];
+        (updated[index] as any)[field] = value;
 
-        if (selectedProduct) {
-            const normalized = formatMoney(Number(selectedProduct.price));
+        setFormData(prev => ({ ...prev, materials: updated }));
+    };
 
-            setFormData({
-                ...selectedProduct,
-                price: normalized
-            });
+    const removeMaterial = (index: number) => {
+        const updated = [...formData.materials];
+        const item = updated[index];
+
+        // se já existe no banco, marcar como deletado
+        if (item.id) {
+            updated[index] = {
+                ...item,
+                _delete: true
+            };
         } else {
-            clearForm();
+            // se não existe no banco, remover normalmente
+            updated.splice(index, 1);
         }
-    }, [show, selectedProduct]);
+
+        setFormData(prev => ({ ...prev, materials: updated }));
+    };
+
+    const productDetailsQuery = useQuery({
+        queryKey: ["product", selectedProduct?.id],
+        queryFn: () => productService.getById(selectedProduct?.id!),
+        enabled: !!selectedProduct?.id && show,
+    });
+
+    useEffect(() => {
+        if (productDetailsQuery.data) {
+            setFormData({
+                name: productDetailsQuery.data.name,
+                hasHeight: productDetailsQuery.data.hasHeight,
+                hasWidth: productDetailsQuery.data.hasWidth,
+                materials: productDetailsQuery.data.materials ?? []
+            });
+        }
+    }, [productDetailsQuery.data]);
 
     const clearForm = () => {
         setFormData({
             name: "",
-            price: "",
+            hasHeight: true,
+            hasWidth: true,
+            materials: []
         });
     };
 
@@ -111,18 +145,52 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
         clearForm();
         onClose();
     };
+
+    const totalPrice = formData.materials.reduce((acc, item) => {
+        const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
+        return acc + (Number(mat?.price) ?? 0) * item.quantity;
+    }, 0);
+
+    const getDimensionMessage = () => {
+        const { hasHeight, hasWidth } = formData;
+
+        if (hasHeight && hasWidth) {
+            return "de 1 metro de largura por 1 metro de altura";
+        }
+
+        if (hasHeight) {
+            return "de 1 metro de altura";
+        }
+
+        if (hasWidth) {
+            return "de 1 metro de largura";
+        }
+
+        return "com as características definidas para este produto";
+    };
+
+    const getBasePriceLabel = () => {
+        const { hasHeight, hasWidth } = formData;
+
+        if (hasHeight && hasWidth) {
+            return "(1m x 1m)";
+        }
+
+        if (hasHeight) {
+            return "(1m de altura)";
+        }
+
+        if (hasWidth) {
+            return "(1m de largura)";
+        }
+
+        return ""; // nenhum dos dois
+    };
+
     return (
-        <Modal
-            centered
-            show={show}
-            onHide={handleClose}
-            dialogClassName="product-modal"
-            backdrop={isFromBudget ? false : "static"}
-        >
-            <Modal.Header closeButton onHide={handleClose}>
-                <Modal.Title>
-                    {selectedProduct ? "Editar" : "Cadastrar"} Produto
-                </Modal.Title>
+        <Modal centered show={show} onHide={handleClose} size="lg" backdrop={isFromBudget ? false : "static"}>
+            <Modal.Header closeButton>
+                <Modal.Title>{selectedProduct ? "Editar" : "Cadastrar"} Produto</Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
@@ -137,18 +205,122 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
                         />
                     </Form.Group>
 
+                    <Row className="mb-3">
+                        <Col>
+                            <Form.Check
+                                label="Possui Altura?"
+                                name="hasHeight"
+                                checked={formData.hasHeight}
+                                onChange={handleChange}
+                            />
+                        </Col>
+                        <Col>
+                            <Form.Check
+                                label="Possui Largura?"
+                                name="hasWidth"
+                                checked={formData.hasWidth}
+                                onChange={handleChange}
+                            />
+                        </Col>
+                    </Row>
+
+                    <div className="p-2 mb-3" style={{ background: "#f8f9fa", borderRadius: 6 }}>
+                        <small>
+                            <strong>Atenção:</strong> informe abaixo quanto de cada material é consumido
+                            para um produto <strong>{getDimensionMessage()}</strong>.
+                            O sistema calculará automaticamente para outras medidas no orçamento.
+                        </small>
+                    </div>
+
                     <Form.Group className="mb-3">
-                        <RequiredLabel>Preço R$</RequiredLabel>
-                        <Form.Control
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            onBlur={handlePriceBlur}
-                            required
-                        />
+                        <Form.Label>Adicionar Material</Form.Label>
+
+                        <Form.Select
+                            onChange={(e) => e.target.value && handleAddMaterial(e.target.value)}
+                        >
+                            <option value="">Selecione...</option>
+                            {availableOptions.map(m => (
+                                <option key={m.value} value={m.value}>{m.label}</option>
+                            ))}
+                        </Form.Select>
                     </Form.Group>
 
-                    <Button className="w-100" type="submit" disabled={saveMutation.isPending}>
+                    <Table bordered>
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th className="text-center">Qtd Base (1x1)</th>
+                                <th className="text-center">Tipo Cálculo</th>
+                                <th className="text-center">Preço</th>
+                                <th className="text-center">Subtotal</th>
+                                <th className="text-center">Ação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {formData.materials.filter(item => !item._delete).map((item, i) => {
+                                const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
+                                return (
+                                    <tr key={i}>
+                                        <td className="align-content-center">{mat?.name}</td>
+
+                                        <td className="align-content-center text-center">
+                                            <Form.Control
+                                                type="number"
+                                                min={0}
+                                                value={item.quantity}
+                                                onChange={(e) =>
+                                                    updateMaterial(i, "quantity", Number(e.target.value))
+                                                }
+                                            />
+                                        </td>
+
+                                        <td className="align-content-center text-center">
+                                            <Form.Select
+                                                value={item.calc_type}
+                                                onChange={(e) =>
+                                                    updateMaterial(i, "calc_type", e.target.value)
+                                                }
+                                            >
+                                                <option value="AREA">Área (L x A)</option>
+                                                <option value="PERIMETER">Perímetro</option>
+                                                <option value="HEIGHT">Altura</option>
+                                                <option value="WIDTH">Largura</option>
+                                                <option value="FIXED">Fixo</option>
+                                            </Form.Select>
+                                        </td>
+
+                                        <td className="align-content-center text-center">R$ {Number(mat?.price || 0).toFixed(2)}</td>
+
+                                        <td className="align-content-center text-center">
+                                            R$ {(item.quantity * (Number(mat?.price) || 0)).toFixed(2)}
+                                        </td>
+
+                                        <td className="align-content-center text-center">
+                                            <TrashFill
+                                                size="1.5rem"
+                                                color="red"
+                                                role="button"
+                                                onClick={() => { removeMaterial(i) }}
+                                            />
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </Table>
+
+                    <hr className="mt-5" />
+                    <Table>
+                        <tbody>
+                            <tr className="borderless">
+                                <td>
+                                    Preço base total {getBasePriceLabel() ? `${getBasePriceLabel()}:` : ":"}</td>
+                                <td className="text-end"> R$ {formatMoney(totalPrice)}</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                    <Button className="w-100 mt-4" type="submit" disabled={saveMutation.isPending}>
                         {saveMutation.isPending ? "Salvando..." : "Salvar"}
                     </Button>
                 </Form>

@@ -7,7 +7,7 @@ type Option = {
 
 type CustomSelectProps = {
   options: Option[];
-  value?: string | number;
+  value?: string | number | null;
   onChange: (value: string | number | undefined) => void;
   placeholder?: string;
   clearOnSelect?: boolean;
@@ -18,11 +18,11 @@ type CustomSelectProps = {
 const CustomSelect = ({ options, value, onChange, placeholder = "Selecione", clearOnSelect = false, disabled, isLoading }: CustomSelectProps) => {
   const inputHeight = "2.8rem";
   const selectedOption = options.find(o => o.value === value);
-
   return (
     <Select
       options={options}
-      value={clearOnSelect ? null : (selectedOption ?? null)}
+      value={clearOnSelect ? null : (selectedOption ?? null)} // se quiser que quando selecionar um item limpe o select, descomentar  linha
+      // value={selectedOption ?? null}
       placeholder={placeholder}
       isLoading={isLoading}
       isDisabled={disabled}

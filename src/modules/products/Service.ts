@@ -1,11 +1,21 @@
 import { api } from "../../services/api";
 import type { PaginatedResponse } from "../../utils/globalTypes";
-import type { Product, ProductForm } from "./types";
+import type { Product, ProductResponse } from "./types";
 
 const productService = {
-    async getAll(page?: number): Promise<PaginatedResponse<ProductForm>> {
-        const response = await api.get("/product", { params: { page } });
 
+    async getById(id: string): Promise<Product> {
+        const { data } = await api.get(`/product/${id}`);
+        return data;
+    },
+
+    async getAll(page?: number): Promise<PaginatedResponse<Product>> {
+        const response = await api.get("/product", { params: { page } });
+        return response.data;
+    },
+
+    async getToBudget(): Promise<ProductResponse[]> {
+        const response = await api.get("/product/budget");
         return response.data;
     },
 
