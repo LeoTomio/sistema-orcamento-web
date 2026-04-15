@@ -116,8 +116,12 @@ function Users() {
 
     return (
         <>
+            <Row className="d-flex justify-content-between align-items-center mb-4">
+                <Col xs={12}>
+                    <h2 className="mb-1">Dados do Usuário</h2>
+                </Col>
+            </Row>
             <Card className="page-container">
-                <h5 className="mb-0">Dados do Usuário</h5>
                 <Form onSubmit={handleSubmit} className="mt-2">
                     <Row>
                         <Col xs={12} lg={6}>

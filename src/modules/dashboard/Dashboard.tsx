@@ -1,47 +1,52 @@
-import { useState } from "react";
-import { Container, Tab, Tabs } from "react-bootstrap";
-import NavBar from "../../components/NavBar";
-import Budget from "../budgets/Budget";
-import Products from "../products/Product";
-import Clients from "../clients/Client";
-import Footer from "../../components/Footer";
-import Users from "../user/User";
-import Materials from "../materials/Material";
+import { Card, Col, Row } from "react-bootstrap";
 
 const Dashboard = () => {
-    const [activeTab, setActiveTab] = useState<string>("budgets");
-
     return (
-        <div className="d-flex flex-column min-vh-100">
-            <NavBar />
-            <Container className="py-4 flex-grow-1" style={{ maxWidth: "900px" }}>
-                <Tabs
-                    activeKey={activeTab}
-                    onSelect={(k) => setActiveTab(k!)}
-                    className="mb-3 dashboard-tabs"
-                    justify
-                    mountOnEnter
-                    unmountOnExit
-                >
-                    <Tab eventKey="budgets" title="Orçamentos">
-                        <Budget />
-                    </Tab>
-                    <Tab eventKey="products" title="Produtos">
-                        <Products />
-                    </Tab>
-                    <Tab eventKey="clients" title="Clientes">
-                        <Clients />
-                    </Tab>
-                    <Tab eventKey="material" title="Material">
-                        <Materials />
-                    </Tab>
-                    <Tab eventKey="user" title="Usuário">
-                        <Users />
-                    </Tab>
-                </Tabs>
-            </Container>
-            <Footer />
-        </div>
+        <>
+            <Row className="d-flex justify-content-between align-items-center mb-4">
+                <Col xs={12} >
+                    <h2 className="mb-1">Dashboard</h2>
+                </Col>
+            </Row>
+
+            <Row>
+                <Col md={3}>
+                    <Card className="page-container">
+                        <h4>Orçamento: 1</h4>
+                    </Card>
+                </Col>
+
+                <Col md={3}>
+                    <Card className="page-container">
+                        <h4>Material: 2</h4>
+                    </Card>
+                </Col>
+
+                <Col md={3}>
+                    <Card className="page-container">
+                        <h4>Produto: 3</h4>
+                    </Card>
+                </Col>
+
+                <Col md={3}>
+                    <Card className="page-container">
+                        <h4>Cliente: 4</h4>
+                    </Card>
+                </Col>
+
+                <Col md={6}>
+
+                    <Card className="page-container">
+                        <h4>Ultimos orçamentos: 4</h4>
+                    </Card>
+                </Col>
+                <Col md={6}>
+                    <Card className="page-container">
+                        <h4>Total</h4>
+                    </Card>
+                </Col>
+            </Row>
+        </>
     );
 };
 

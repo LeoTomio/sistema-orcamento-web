@@ -1,18 +1,29 @@
-.app-navbar .brand-nowrap,
-.app-navbar .nav-actions {
-    white-space: nowrap;
+.top-navbar {
+    width: 100%;
+    height: 60px;
+    background:  #f9fbfe !important;
+    color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.app-navbar .nav-actions {
-    flex-wrap: nowrap !important;
+.navbar-hello {
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
-.app-navbar .user-email {
-    white-space: nowrap;
+.navbar-logout {
+    border: none !important;
+    color: black !important;
 }
 
-@media (max-width: 991px) {
-    .app-navbar .user-email {
-        display: none;
-    }
+.navbar-logout:hover {
+    background: #fff !important;
+    color: #1E3A5F !important;
 }

@@ -35,7 +35,6 @@ export function SignatureModal({ show, onClose, budgetId }: SignatureModalProps)
             toast.success("Assinatura salva com sucesso!");
             onClose();
         } catch (error) {
-            console.error(error);
             alert("Erro ao salvar assinatura.");
         } finally {
             endLoading()

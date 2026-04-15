@@ -4,7 +4,7 @@ import "../../styles/login.css"
 import { useAuth } from "../../context/AuthContext"
 import { useLoading } from "../../context/LoadingContext"
 import { Clipboard2, Eye, EyeSlash } from "react-bootstrap-icons"
-import Footer from "../../components/Footer"
+import Footer from "../../components/layout/Footer"
 import { toast } from "sonner"
 
 const Login = () => {

@@ -1,3 +1,14 @@
+:root {
+  --headers-bg: #1E3A5F;
+
+  --color-secondary: #6c757d;
+  --color-success: #198754;
+  --color-danger: #dc3545;
+
+  --bg-main: #f8f9fa;
+  --text-main: #212529;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -37,7 +48,7 @@ input {
 }
 
 .submitButton {
-  background-color: #1B4374 !important;
+  background-color: var(--headers-bg) !important;
   color: #ffffff !important;
   outline: none !important;
   border: none !important;
@@ -121,7 +132,7 @@ input {
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
   border: none !important;
   margin-bottom: 1.5rem !important;
-  padding: 1rem !important;
+  padding: 1.5rem !important;
 }
 
 .actions-container {
@@ -130,9 +141,9 @@ input {
   flex-wrap: wrap;
 }
 
-.actions-container > * {
+.actions-container>* {
   margin: 0 0.2rem 0.3rem 0;
-} 
+}
 
 .action-btn {
   display: flex !important;
@@ -140,7 +151,7 @@ input {
   justify-content: center !important;
   border-radius: 0.75rem;
   flex: 1 1 calc(50% - 0.25rem);
-  padding: 3px  !important; 
+  padding: 3px !important;
 }
 
 .action-btn span {
@@ -151,7 +162,7 @@ input {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   background: #ffffff;
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.2);
-  border:none !important
+  border: none !important
 }
 
 .internal-card:hover {
@@ -173,6 +184,7 @@ input {
     width: 1rem !important;
     height: 1rem !important;
   }
+
   .desktop-table {
     display: none;
   }

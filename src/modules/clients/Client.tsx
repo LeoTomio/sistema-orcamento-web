@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Col, Row } from "react-bootstrap";
 import { PencilFill, TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
@@ -54,31 +54,34 @@ function Clients() {
         setOpenModal(true);
     };
 
+    const [dark, setDark] = useState(false);
+    useEffect(() => {
+        if (dark) {
+            document.body.classList.add("dark-theme");
+        } else {
+            document.body.classList.remove("dark-theme");
+        }
+    }, [dark]);
+
     return (
         <>
+            <Row className="d-flex justify-content-between align-items-center mb-4">
+                <Col xs={6} md={10}>
+                    <h2 className="mb-1">Clientes</h2>
+                </Col>
+                <Col xs={6} md={2} className="text-md-end">
+                    <Button
+                        className="submitButton w-100"
+                        onClick={() => {
+                            setSelectedClient(null);
+                            setOpenModal(true);
+                        }}
+                    >
+                        Adicionar
+                    </Button>
+                </Col>
+            </Row>
             <Card className="page-container">
-                <Row className="align-items-center mb-4">
-                    <Col xs={12} md={8}>
-                        <div className="mb-3">
-                            <h5 className="mb-1">Clientes</h5>
-                            <small className="text-muted">
-                                Gerencie os clientes cadastrados
-                            </small>
-                        </div>
-                    </Col>
-                    <Col xs={12} md={4} className="text-md-end">
-                        <Button
-                            className="submitButton w-100"
-                            onClick={() => {
-                                setSelectedClient(null);
-                                setOpenModal(true);
-                            }}
-                        >
-                            Adicionar
-                        </Button>
-                    </Col>
-                </Row>
-
                 <Row className="g-3">
                     {isLoading &&
                         <Col xs={12}>
@@ -90,7 +93,7 @@ function Clients() {
                         </Col>
                     }
                     {!isLoading && clients.length > 0 && clients.map((c) => (
-                        <Col xs={1} sm={2} md={3} lg={3} key={c.id}>
+                        <Col xs={12} md={6} lg={3} key={c.id}>
                             <Card className="h-100 internal-card">
                                 <Card.Body className="d-flex flex-column">
                                     <Card.Title className="fw-bold">{c.name}</Card.Title>

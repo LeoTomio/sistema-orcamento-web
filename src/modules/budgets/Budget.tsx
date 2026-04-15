@@ -98,30 +98,24 @@ export default function Budgets() {
 
   return (
     <>
+
+      <Row className="d-flex justify-content-between align-items-center mb-4">
+        <Col xs={6} md={10}>
+          <h2 className="mb-1">Orçamentos</h2>
+        </Col>
+        <Col xs={6} md={2} className="text-md-end">
+          <Button
+            className="submitButton w-100"
+            onClick={() => {
+              setSelectedBudget(null);
+              setOpenModal(true);
+            }}
+          >
+            Adicionar
+          </Button>
+        </Col>
+      </Row>
       <Card className="page-container">
-        <Row className="align-items-center mb-4">
-          <Col xs={12} md={8}>
-            <div className="mb-3">
-              <h5 className="mb-1">Orçamentos</h5>
-              <small className="text-muted">
-                Gerencie os orçamentos cadastrados
-              </small>
-            </div>
-          </Col>
-
-          <Col xs={12} md={4} className="text-md-end">
-            <Button
-              className="submitButton w-100"
-              onClick={() => {
-                setSelectedBudget(null);
-                setOpenModal(true);
-              }}
-            >
-              Adicionar
-            </Button>
-          </Col>
-        </Row>
-
         <Row className="g-4">
           {isLoading &&
             <Col xs={12}>
