@@ -14,7 +14,6 @@ const Dashboard = () => {
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
     });
-    console.log(data)
     return (
         <>
             <Row className="d-flex justify-content-between align-items-center mb-4">
