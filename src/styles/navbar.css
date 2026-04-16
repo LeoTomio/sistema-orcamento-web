@@ -19,6 +19,8 @@
 }
 
 .navbar-logout {
+    display: flex !important;
+    align-items: center !important;
     border: none !important;
     color: black !important;
 }

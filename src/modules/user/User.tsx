@@ -219,8 +219,8 @@ function Users() {
 
                             </Form.Group>
                         </Col>
-                        <Col xs={12}>
-                            <Button className="w-100 mt-4" type="submit" disabled={saveMutation.isPending}>
+                        <Col xs={12} className="d-flex justify-content-center align-items-center">
+                            <Button className="submitButton mt-4 w-50" type="submit" disabled={saveMutation.isPending}>
                                 {saveMutation.isPending ? "Salvando..." : "Salvar"}
                             </Button>
                         </Col>

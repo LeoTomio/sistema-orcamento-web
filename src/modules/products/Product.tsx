@@ -91,7 +91,7 @@ function Products() {
                     }
 
                     {!isLoading && products.length > 0 && products.map((p: Product) => (
-                        <Col xs={12} sm={2} md={3} lg={3} key={p.id}>
+                        <Col xs={12} md={4} lg={3} key={p.id}>
                             <Card className="h-100 internal-card">
                                 <Card.Body className="d-flex flex-column">
                                     <Card.Title className="fw-bold">{p.name}</Card.Title>

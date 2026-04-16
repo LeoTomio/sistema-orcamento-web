@@ -1,5 +1,5 @@
 .footer-container {
-  background: #1f2937;
+  background: color-mix(in srgb, var(--headers-bg) 97%, white);
   color: #aaa;
   padding: 10px 0;
   font-size: 13px;
@@ -20,7 +20,7 @@
   font-size: 12px;
 }
 
-.footer-social > * {
+.footer-social>* {
   margin: 5px;
 }
 

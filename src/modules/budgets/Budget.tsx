@@ -128,6 +128,7 @@ export default function Budgets() {
           }
           {!isLoading && budgets.length > 0 && budgets.map((b) => (
             <Col key={b.id} xs={12} md={6} xl={4}>
+
               <Card className="h-100 border-0 internal-card">
                 <Card.Body className="p-3 p-md-4 d-flex flex-column">
                   <div className="mb-3">

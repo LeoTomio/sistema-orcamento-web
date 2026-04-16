@@ -4,6 +4,7 @@
   --color-secondary: #6c757d;
   --color-success: #198754;
   --color-danger: #dc3545;
+  --color-danger2: #82462b;
 
   --bg-main: #f8f9fa;
   --text-main: #212529;
@@ -132,7 +133,7 @@ input {
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
   border: none !important;
   margin-bottom: 1.5rem !important;
-  padding: 1.5rem !important;
+  padding: 1rem !important;
 }
 
 .actions-container {
@@ -169,6 +170,12 @@ input {
   transform: translateY(-2px);
 }
 
+.dashboard-card-values {
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+}
+
 
 @media (max-width: 576px) {
   table {
@@ -178,11 +185,6 @@ input {
   th,
   td {
     padding: 0.2rem !important;
-  }
-
-  svg {
-    width: 1rem !important;
-    height: 1rem !important;
   }
 
   .desktop-table {
