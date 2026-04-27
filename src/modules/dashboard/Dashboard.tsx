@@ -129,7 +129,7 @@ const Dashboard = () => {
 
                             <Card className="page-container rounded-4">
                                 <Card.Body className="p-0">
-                                    <Table responsive hover className="mb-0 align-middle">
+                                    <Table responsive className="mb-0 align-middle">
                                         <thead>
                                             <tr>
                                                 <th>Cliente</th>
@@ -140,25 +140,34 @@ const Dashboard = () => {
                                         </thead>
 
                                         <tbody>
-                                            {data?.lastBudgets && data?.lastBudgets.map((item) => (
-                                                <tr key={item.id}>
-                                                    <td>
-                                                        <strong>{item.client_name}</strong>
-                                                    </td>
+                                            {!data?.lastBudgets || data.lastBudgets.length === 0 ? (
+                                                data?.lastBudgets.map((item) => (
+                                                    <tr key={item.id}>
+                                                        <td>
+                                                            <strong>{item.client_name}</strong>
+                                                        </td>
 
-                                                    <td className="text-muted">
-                                                        #{String(item.number).padStart(4, '0')}
-                                                    </td>
+                                                        <td className="text-muted">
+                                                            #{String(item.number).padStart(4, '0')}
+                                                        </td>
 
-                                                    <td className="text-muted">
-                                                        {moment(item.createdAt).format('DD/MM/YYYY')}
-                                                    </td>
+                                                        <td className="text-muted">
+                                                            {moment(item.createdAt).format('DD/MM/YYYY')}
+                                                        </td>
 
-                                                    <td className="fw-semibold text-success">
-                                                        R$ {formatMoney(item.total)}
+                                                        <td className="fw-semibold text-success">
+                                                            R$ {formatMoney(item.total)}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={4} className="text-center py-5 text-muted">
+                                                        Nenhum orçamento encontrado.
                                                     </td>
                                                 </tr>
-                                            ))}
+
+                                            )}
                                         </tbody>
                                     </Table>
                                 </Card.Body>
