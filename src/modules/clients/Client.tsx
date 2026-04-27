@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Card, Col, Row } from "react-bootstrap";
 import { PencilFill, TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
@@ -53,15 +53,7 @@ function Clients() {
         setSelectedClient(client);
         setOpenModal(true);
     };
-
-    const [dark, setDark] = useState(false);
-    useEffect(() => {
-        if (dark) {
-            document.body.classList.add("dark-theme");
-        } else {
-            document.body.classList.remove("dark-theme");
-        }
-    }, [dark]);
+    
 
     return (
         <>
