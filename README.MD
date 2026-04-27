@@ -59,7 +59,6 @@ esse apk ja funciona no celular
 - Menu build -> Generate Signed Bundle / APK -> escolhe Android App Bundle 
 - Criar a keystore, assina e sobe na Play Store.
 
-
 # Obs
 
 Sempre que alterar o front:
