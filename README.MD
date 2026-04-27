@@ -50,8 +50,6 @@ ext {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-
-
 ## Gerar APK para usar sem Play Store
 - Menu build -> Build Bundle(s) / APK(s) -> Build APK(s)
 - APK é gerado e fica algo como: android/app/build/outputs/apk/debug/app-debug.apk
@@ -71,5 +69,3 @@ npx cap sync android
 npx cap open android
 
 Sempre tem que alterar a versao do java de 21 pra 17 no capacitor.build.gradle
-
-# https://chatgpt.com/c/69bb055d-4850-8329-8d1b-8947fe6292e8
