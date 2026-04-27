@@ -141,6 +141,12 @@ const Dashboard = () => {
 
                                         <tbody>
                                             {!data?.lastBudgets || data.lastBudgets.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className="text-center py-5 text-muted">
+                                                        Nenhum orçamento encontrado.
+                                                    </td>
+                                                </tr>
+                                            ) : (
                                                 data?.lastBudgets.map((item) => (
                                                     <tr key={item.id}>
                                                         <td>
@@ -160,12 +166,6 @@ const Dashboard = () => {
                                                         </td>
                                                     </tr>
                                                 ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan={4} className="text-center py-5 text-muted">
-                                                        Nenhum orçamento encontrado.
-                                                    </td>
-                                                </tr>
 
                                             )}
                                         </tbody>
