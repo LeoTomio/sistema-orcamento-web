@@ -342,7 +342,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
               onTotalChange={setItemsTotal}
             />
 
-            <Form.Group className="mb-3">
+            <Form.Group className="my-3">
               <Form.Label>Mão de obra R$</Form.Label>
               <Form.Control
                 name="labor"

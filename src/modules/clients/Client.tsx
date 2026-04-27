@@ -82,7 +82,7 @@ function Clients() {
                 </Col>
             </Row>
             <Card className="page-container">
-                <Row className="g-3">
+                <Row>
                     {isLoading &&
                         <Col xs={12}>
                             <Card className="border-0 shadow-sm rounded-4">

@@ -79,7 +79,7 @@ function Products() {
                 </Col>
             </Row>
             <Card className="page-container">
-                <Row className="g-3">
+                <Row>
                     {isLoading &&
                         <Col xs={12}>
                             <Card className="border-0 shadow-sm rounded-4">
@@ -89,9 +89,8 @@ function Products() {
                             </Card>
                         </Col>
                     }
-
                     {!isLoading && products.length > 0 && products.map((p: Product) => (
-                        <Col xs={12} md={4} lg={3} key={p.id}>
+                        <Col xs={12} md={4} lg={3} key={p.id} className="mb-3">
                             <Card className="h-100 internal-card">
                                 <Card.Body className="d-flex flex-column">
                                     <Card.Title className="fw-bold">{p.name}</Card.Title>

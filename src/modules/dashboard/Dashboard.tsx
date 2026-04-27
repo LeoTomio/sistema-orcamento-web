@@ -14,6 +14,7 @@ const Dashboard = () => {
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
     });
+
     return (
         <>
             <Row className="d-flex justify-content-between align-items-center mb-4">
@@ -23,8 +24,8 @@ const Dashboard = () => {
             </Row>
 
 
-            <Row>
-                {isLoading ?
+            {isLoading ?
+                <Row>
                     <div>
                         <Card className="border-0 page-container rounded-4">
                             <Card.Body className="text-center py-5 text-muted page-content">
@@ -32,12 +33,14 @@ const Dashboard = () => {
                             </Card.Body>
                         </Card>
                     </div>
-                    :
-                    <>
-                        <Col md={3} lg={3}>
+                </Row>
+                :
+                <>
+                    <Row>
+                        <Col sm={12} md={4} lg={3}>
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <CashStack size={40} className="me-3 text-success" />
+                                    <CashStack size={40} className="me-3 flex-shrink-0 text-success" />
                                     <div>
                                         <div className="text-muted">Orçamentos</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>{data?.budgets}</div>
@@ -46,10 +49,10 @@ const Dashboard = () => {
                             </Card>
                         </Col>
 
-                        <Col md={3} lg={3}>
+                        <Col md={4} lg={3}>
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <Layers size={40} className="me-3" style={{ color: '#8B5CF6' }} />
+                                    <Layers size={40} className="me-3 flex-shrink-0" style={{ color: '#8B5CF6' }} />
                                     <div>
                                         <div className="text-muted">Materiais</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>{data?.materials}</div>
@@ -58,10 +61,10 @@ const Dashboard = () => {
                             </Card>
                         </Col>
 
-                        <Col md={3} lg={3}>
+                        <Col md={4} lg={3}>
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <Boxes size={40} className="me-3" style={{ color: '#82462b' }} />
+                                    <Boxes size={40} className="me-3 flex-shrink-0" style={{ color: '#82462b' }} />
                                     <div>
                                         <div className="text-muted">Produtos</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>{data?.products}</div>
@@ -70,10 +73,10 @@ const Dashboard = () => {
                             </Card>
                         </Col>
 
-                        <Col md={3} lg={3}>
+                        <Col md={4} lg={3}>
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <People size={40} className="me-3" style={{ color: '#06B6D4' }} />
+                                    <People size={40} className="me-3 flex-shrink-0" style={{ color: '#06B6D4' }} />
                                     <div>
                                         <div className="text-muted">Clientes</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>{data?.clients}</div>
@@ -81,11 +84,13 @@ const Dashboard = () => {
                                 </div>
                             </Card>
                         </Col>
+                    </Row>
 
+                    <Row>
                         <Col xs={12} sm={12} md={4} >
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <CurrencyDollar size={40} className="me-3 text-success" />
+                                    <CurrencyDollar size={40} className="me-3 flex-shrink-0 text-success" />
                                     <div>
                                         <div className="text-muted">Valor em Produtos</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>R$ {formatMoney(Number(data?.productTotal))}</div>
@@ -94,10 +99,11 @@ const Dashboard = () => {
                             </Card>
                         </Col>
 
+
                         <Col xs={12} sm={12} md={4} >
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <Tools size={40} className="me-3" style={{ color: "#64748B" }} />
+                                    <Tools size={40} className="me-3 flex-shrink-0" style={{ color: "#64748B" }} />
                                     <div>
                                         <div className="text-muted">Valor em Mão de obra</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>R$ {formatMoney(Number(data?.laborTotal))}</div>
@@ -109,7 +115,7 @@ const Dashboard = () => {
                         <Col xs={12} sm={12} md={4} >
                             <Card className="page-container rounded-4">
                                 <div className="d-flex align-items-center">
-                                    <Wallet2 size={40} className="me-3" style={{ color: "#F59E0B" }} />
+                                    <Wallet2 size={40} className="me-3 flex-shrink-0" style={{ color: "#F59E0B" }} />
                                     <div>
                                         <div className="text-muted">Receita Total Gerada</div>
                                         <div className="dashboard-card-values" style={{ fontSize: '1.6rem' }}>R$ {formatMoney(Number(data?.finalTotal))}</div>
@@ -118,8 +124,8 @@ const Dashboard = () => {
                             </Card>
                         </Col>
 
-                        <Col md={12}>
-                            <h4 className="mb-3">Últimos orçamentos</h4>
+                        <Col md={12} >
+                            <h4 className="mt-2 mb-4">Últimos orçamentos</h4>
 
                             <Card className="page-container rounded-4">
                                 <Card.Body className="p-0">
@@ -158,9 +164,10 @@ const Dashboard = () => {
                                 </Card.Body>
                             </Card>
                         </Col>
-                    </>
-                }
-            </Row>
+                    </Row>
+                </>
+            }
+
         </>
     );
 };

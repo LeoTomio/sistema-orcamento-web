@@ -57,7 +57,7 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                         </Button>
                     </Card.Header>
                     <Card.Body>
-                        <Row className="g-2 align-items-end">
+                        <Row>
                             <Col xs={4} md={3}>
                                 <Form.Label className="small">Largura (m)</Form.Label>
                                 <Form.Control

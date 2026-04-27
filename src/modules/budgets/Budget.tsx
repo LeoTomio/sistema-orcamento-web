@@ -116,7 +116,7 @@ export default function Budgets() {
         </Col>
       </Row>
       <Card className="page-container">
-        <Row className="g-4">
+        <Row>
           {isLoading &&
             <Col xs={12}>
               <Card className="border-0 shadow-sm rounded-4">
@@ -127,8 +127,7 @@ export default function Budgets() {
             </Col>
           }
           {!isLoading && budgets.length > 0 && budgets.map((b) => (
-            <Col key={b.id} xs={12} md={6} xl={4}>
-
+            <Col key={b.id} xs={12} md={6} xl={4} className="mb-3">
               <Card className="h-100 border-0 internal-card">
                 <Card.Body className="p-3 p-md-4 d-flex flex-column">
                   <div className="mb-3">
