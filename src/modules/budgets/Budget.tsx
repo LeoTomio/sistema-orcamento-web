@@ -52,6 +52,7 @@ export default function Budgets() {
     if (!selectedBudget) return;
 
     deleteMutation.mutateAsync(selectedBudget!)
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     setOpenDeleteModal(false)
   };
 
@@ -127,7 +128,7 @@ export default function Budgets() {
             </Col>
           }
           {!isLoading && budgets.length > 0 && budgets.map((b) => (
-            <Col key={b.id} xs={12} md={6} xl={4} className="mb-3">
+            <Col key={b.id} xs={12} md={6} xl={4}>
               <Card className="h-100 border-0 internal-card">
                 <Card.Body className="p-3 p-md-4 d-flex flex-column">
                   <div className="mb-3">
@@ -202,16 +203,17 @@ export default function Budgets() {
             </Col>
           )}
         </Row>
-
-        <div className="mt-4">
-          <PaginationComponent
-            currentPage={currentPage}
-            totalItems={totalItems}
-            onPageChange={setCurrentPage}
-            itemPerPage={itemPerPageEnum.budget}
-          />
-        </div>
       </Card>
+
+      <div className="mt-4">
+        <PaginationComponent
+          currentPage={currentPage}
+          totalItems={totalItems}
+          onPageChange={setCurrentPage}
+          itemPerPage={itemPerPageEnum.budget}
+        />
+      </div>
+
       {openModal &&
         <BudgetModal
           show={openModal}
@@ -220,6 +222,7 @@ export default function Budgets() {
           onSuccess={() => {
             toast.success(`Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`);
             queryClient.invalidateQueries({ queryKey: ["budgets"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
           }}
         />
       }

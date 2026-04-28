@@ -205,26 +205,35 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
                         />
                     </Form.Group>
 
-                    <Row className="mb-3">
+                    <Row className="d-flex justify-content-center align-items-center">
                         <Col>
                             <Form.Check
-                                label="Possui Altura?"
                                 name="hasHeight"
                                 checked={formData.hasHeight}
                                 onChange={handleChange}
+                                label={
+                                    <span className="ms-2">
+                                        Possui Altura?
+                                    </span>
+                                }
                             />
                         </Col>
+
                         <Col>
                             <Form.Check
-                                label="Possui Largura?"
                                 name="hasWidth"
                                 checked={formData.hasWidth}
                                 onChange={handleChange}
+                                label={
+                                    <span className="ms-2">
+                                        Possui Largura?
+                                    </span>
+                                }
                             />
                         </Col>
                     </Row>
 
-                    <div className="p-2 mb-3" style={{ background: "#f8f9fa", borderRadius: 6 }}>
+                    <div className="p-2 my-3" style={{ background: "#e5e7eb", borderRadius: 6 }}>
                         <small>
                             <strong>Atenção:</strong> informe abaixo quanto de cada material é consumido
                             para um produto <strong>{getDimensionMessage()}</strong>.
@@ -249,7 +258,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
                         <thead>
                             <tr>
                                 <th>Material</th>
-                                <th className="text-center">Qtd Base (1x1)</th>
+                                <th className="text-center">Quant. Base</th>
                                 <th className="text-center">Tipo Cálculo</th>
                                 <th className="text-center">Preço</th>
                                 <th className="text-center">Subtotal</th>
@@ -320,7 +329,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
                             </tr>
                         </tbody>
                     </Table>
-                    <Button className="w-100 mt-4" type="submit" disabled={saveMutation.isPending}>
+                    <Button className="w-100" type="submit" disabled={saveMutation.isPending}>
                         {saveMutation.isPending ? "Salvando..." : "Salvar"}
                     </Button>
                 </Form>

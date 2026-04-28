@@ -30,6 +30,6 @@
 
 .budget-items-div {
   margin-top: .5rem;
-  max-height: 280px;
+  max-height: 450px;
   overflow: auto;
 }

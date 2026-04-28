@@ -20,7 +20,7 @@
 }
 
 .sidebar.open {
-    width: 250px;
+    width: 200px;
 }
 
 .sidebar.closed {
@@ -75,7 +75,7 @@
 }
 
 .sidebar.open+.content-area {
-    margin-left: 250px;
+    margin-left: 200px;
 }
 
 .sidebar.closed+.content-area {

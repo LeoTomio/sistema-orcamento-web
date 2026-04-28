@@ -11,7 +11,7 @@ export default function Sidebar() {
         <div className={`sidebar ${open ? "open" : "closed"}`}>
             <div className="sidebar-header">
                 <div className="title-area">
-                    {open && <b className="ms-1">Sistema de Orçamentos</b>}
+                    {open && <b className="ms-1">Seu Orçamento</b>}
                 </div>
 
                 <Button

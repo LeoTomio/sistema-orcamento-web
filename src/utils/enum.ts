@@ -1,8 +1,8 @@
 export const itemPerPageEnum = {
     budget: 4,
-    product: 6,
-    client: 6,
-    material: 6
+    product: 8,
+    client: 8,
+    material: 8
 }
 
 export const cacheTime = {

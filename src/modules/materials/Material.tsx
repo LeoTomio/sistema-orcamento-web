@@ -55,6 +55,7 @@ function Materials() {
         if (!selectedMaterial) return;
 
         await deleteMutation.mutateAsync(selectedMaterial.id!);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     };
 
 
@@ -147,16 +148,15 @@ function Materials() {
                         </Col>
                     )}
                 </Row>
-
-                <div className="mt-4">
-                    <PaginationComponent
-                        currentPage={currentPage}
-                        totalItems={totalItems}
-                        onPageChange={setCurrentPage}
-                        itemPerPage={itemPerPageEnum.material}
-                    />
-                </div>
             </Card>
+            <div className="mt-4">
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    onPageChange={setCurrentPage}
+                    itemPerPage={itemPerPageEnum.material}
+                />
+            </div>
             {openModal &&
                 <MaterialModal
                     show={openModal}
@@ -168,6 +168,7 @@ function Materials() {
                     onSuccess={() => {
                         toast.success(`Material ${selectedMaterial ? "alterado" : "adicionado"} com sucesso!`);
                         queryClient.invalidateQueries({ queryKey: ["materials"] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                     }}
                 />
             }

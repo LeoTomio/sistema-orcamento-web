@@ -53,6 +53,7 @@ function Products() {
         if (!selectedProduct) return;
 
         await deleteMutation.mutateAsync(selectedProduct.id!);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     };
 
     const handleEdit = (product: ProductForm) => {
@@ -143,16 +144,17 @@ function Products() {
                         </Col>
                     )}
                 </Row>
-
-                <div className="mt-4">
-                    <PaginationComponent
-                        currentPage={currentPage}
-                        totalItems={totalItems}
-                        onPageChange={setCurrentPage}
-                        itemPerPage={itemPerPageEnum.product}
-                    />
-                </div>
             </Card>
+
+            <div className="mt-4">
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    onPageChange={setCurrentPage}
+                    itemPerPage={itemPerPageEnum.product}
+                />
+            </div>
+
             {openModal &&
                 <ProductModal
                     show={openModal}
@@ -164,6 +166,7 @@ function Products() {
                     onSuccess={() => {
                         toast.success(`Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`);
                         queryClient.invalidateQueries({ queryKey: ["products"] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                     }}
                 />}
 

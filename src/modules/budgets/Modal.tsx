@@ -95,25 +95,42 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { clientId, items } = formData
+
+    const { clientId, items } = formData;
+
     if (!clientId) {
-      toast.warning('Campo cliente é obrigatório')
-      return
-    }
-    if (items.length == 0) {
-      toast.warning("É necessario ter ao menos 1 item")
-      return
+      toast.warning('Campo cliente é obrigatório');
+      return;
     }
 
-    items.map((item) => {
-      item.materials?.map((m) => {
-        m.unitPrice = Number(String(m.unitPrice).replace(/\./g, "").replace(",", "."));
-      })
-    })
+    if (items.length === 0) {
+      toast.warning("É necessario ter ao menos 1 item");
+      return;
+    }
+
+    const sanitizedItems = items.map((item) => {
+      const sanitizedMaterials = item.materials?.map((m) => ({
+        ...m,
+        unitPrice: Number(
+          String(m.unitPrice).replace(/\./g, "").replace(",", ".")
+        ),
+      }));
+
+      return {
+        ...item,
+        width: item.hasWidth ? item.width ?? null : null,
+        height: item.hasHeight ? item.height ?? null : null,
+        materials: sanitizedMaterials,
+      };
+    });
 
     saveMutation.mutate({
       ...formData,
-      total: formData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+      items: sanitizedItems,
+      total: sanitizedItems.reduce(
+        (acc, item) => acc + item.price * item.quantity,
+        0
+      ),
     });
   };
 

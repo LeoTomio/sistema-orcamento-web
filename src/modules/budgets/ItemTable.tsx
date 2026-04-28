@@ -40,6 +40,7 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
     useEffect(() => {
         onTotalChange(grandTotal);
     }, [grandTotal, onTotalChange]);
+
     return (
         <div className="budget-items-div">
             {/* <div> */}
@@ -64,9 +65,14 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                                     type="number"
                                     step="0.1"
                                     min="1"
-                                    value={item.width}
+                                    value={item.width ?? ""}
+                                    disabled={!item.hasWidth}
                                     onChange={(e) =>
-                                        updateItem(idx, "width", parseFloat(e.target.value) || 1)
+                                        updateItem(
+                                            idx,
+                                            "width",
+                                            e.target.value ? parseFloat(e.target.value) : null
+                                        )
                                     }
                                 />
                             </Col>
@@ -76,9 +82,14 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                                     type="number"
                                     step="0.1"
                                     min="1"
-                                    value={item.height}
+                                    value={item.height ?? ""}
+                                    disabled={!item.hasHeight}
                                     onChange={(e) =>
-                                        updateItem(idx, "height", parseFloat(e.target.value) || 1)
+                                        updateItem(
+                                            idx,
+                                            "height",
+                                            e.target.value ? parseFloat(e.target.value) : null
+                                        )
                                     }
                                 />
                             </Col>

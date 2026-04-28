@@ -12,8 +12,8 @@ export interface BudgetItem {
   id?: string;
   quantity: number;
   price: number;
-  width?: number;
-  height?: number;
+  width?: number | null;
+  height?: number | null;
   name: string;
   productId?: string;
   hasWidth?: boolean;

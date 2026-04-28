@@ -46,6 +46,7 @@ function Clients() {
         if (!selectedClient) return;
 
         await deleteMutation.mutateAsync(selectedClient.id!);
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
     };
 
@@ -53,7 +54,7 @@ function Clients() {
         setSelectedClient(client);
         setOpenModal(true);
     };
-    
+
 
     return (
         <>
@@ -132,16 +133,17 @@ function Clients() {
                         </Col>
                     )}
                 </Row>
-
-                <div className="mt-4">
-                    <PaginationComponent
-                        currentPage={currentPage}
-                        totalItems={totalItems}
-                        onPageChange={setCurrentPage}
-                        itemPerPage={itemPerPageEnum.client}
-                    />
-                </div>
             </Card>
+
+            <div className="mt-4">
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalItems={totalItems}
+                    onPageChange={setCurrentPage}
+                    itemPerPage={itemPerPageEnum.client}
+                />
+            </div>
+
             {openModal &&
                 <ClientModal
                     show={openModal}
@@ -150,6 +152,7 @@ function Clients() {
                     onSuccess={() => {
                         toast.success(`Cliente ${selectedClient ? "alterado" : "adicionado"} com sucesso!`);
                         queryClient.invalidateQueries({ queryKey: ["clients"] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                     }}
                 />}
 
