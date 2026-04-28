@@ -1,6 +1,6 @@
 .footer-container {
   background: color-mix(in srgb, var(--headers-bg) 97%, white);
-  color: #aaa;
+  color: white;
   padding: 10px 0;
   font-size: 13px;
 }
@@ -24,20 +24,15 @@
   margin: 5px;
 }
 
+.social-icon {
+  color: white;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+
 .social-icon:hover {
-  transform: scale(1.2);
-}
-
-.instagram {
-  color: #E4405F;
-}
-
-.linkedin {
-  color: #0A66C2;
-}
-
-.github {
-  color: #171515;
+  transform: scale(1.5);
 }
 
 .footer-copy {

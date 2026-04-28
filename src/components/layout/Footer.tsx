@@ -30,7 +30,7 @@ const Footer = () => {
                   href="https://www.instagram.com/tomioleo/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon instagram"
+                  className="social-icon"
                 >
                   <Instagram size={18} />
                 </a>
@@ -39,7 +39,7 @@ const Footer = () => {
                   href="https://www.linkedin.com/in/leonardo-tomio-9342a91aa/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon linkedin"
+                  className="social-icon"
                 >
                   <Linkedin size={18} />
                 </a>
@@ -48,7 +48,7 @@ const Footer = () => {
                   href="https://github.com/LeoTomio"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="social-icon github"
+                  className="social-icon"
                 >
                   <Github size={18} />
                 </a>
