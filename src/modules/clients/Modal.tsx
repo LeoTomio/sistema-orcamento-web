@@ -10,6 +10,7 @@ import { formatDocument, formatPhone } from "../../utils/formaters";
 import { isValidCNPJ, isValidCPF, onlyNumbers } from "../../utils/validators";
 import clientService from "./Service";
 import type { Client } from "./types";
+import { useAuth } from "../../context/AuthContext";
 
 interface Props {
   show: boolean;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export default function ClientModal({ show, onClose, selectedClient, onSuccess, isFromBudget }: Props) {
+  const { user } = useAuth()
+  const userId = user?.id
   const [formData, setFormData] = useState<Client>({
     name: "",
     document: "",
@@ -117,8 +120,8 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
   };
 
   const clientQuery = useQuery({
-    queryKey: ["client", selectedClient?.id],
-    enabled: !!selectedClient,
+    queryKey: ["client", userId, selectedClient?.id],
+    enabled: !!selectedClient && !!userId,
     refetchOnMount: "always",
     queryFn: async () => {
       try {

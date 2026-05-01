@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import loginService from "../modules/login/loginService"
+import loginService from "../modules/login/Service"
 import { toast } from "sonner"
 import type { Login } from "../modules/login/types"
 import { useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 
 type AuthProviderProps = {
     children: any
@@ -28,6 +29,7 @@ export const useAuth = (): AuthContextType => {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const navigate = useNavigate()
+    const queryClient = useQueryClient();
     const [user, setUser] = useState<Login | null>(null);
     const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -68,12 +70,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     const signOut = async () => {
+        queryClient.clear()
         localStorage.removeItem('token')
         localStorage.removeItem("user");
         setUser(null)
         navigate('/login')
     }
 
+    
     const value: AuthContextType = {
         user,
         sessionExpired,

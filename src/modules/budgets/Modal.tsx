@@ -15,6 +15,7 @@ import productService from "../products/Service";
 import BudgetItemTable from "./ItemTable";
 import budgetService from "./Service";
 import type { Budget } from "./types";
+import { useAuth } from "../../context/AuthContext";
 interface Props {
   show: boolean;
   onClose: () => void;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }: Props) {
+  const { user } = useAuth()
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Budget>({
     clientId: "",
@@ -37,9 +39,10 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
   const clientsQuery = useQuery({
-    queryKey: ["clients"],
+    queryKey: ["clients", user?.id],
     queryFn: () => clientService.getAll(),
-    staleTime: cacheTime.fiveMinutes
+    staleTime: cacheTime.fiveMinutes,
+    enabled: !!user?.id
   });
 
   const clientOptions = clientsQuery.data?.data
@@ -50,9 +53,10 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     })) ?? [];
 
   const productsQuery = useQuery({
-    queryKey: ["products"],
+    queryKey: ["budget-products", user?.id],
     queryFn: () => productService.getToBudget(),
-    staleTime: cacheTime.fiveMinutes
+    staleTime: cacheTime.fiveMinutes,
+    enabled: !!user?.id
   });
   const productOptions = productsQuery.data?.sort((a, b) => a.name.localeCompare(b.name))
     .map(product => ({
@@ -61,9 +65,10 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     })) ?? [];
 
   const materialQuery = useQuery({
-    queryKey: ["budget-materials"],
+    queryKey: ["budget-materials", user?.id],
     queryFn: () => materialService.getToBudget(),
-    staleTime: cacheTime.fiveMinutes
+    staleTime: cacheTime.fiveMinutes,
+    enabled: !!user?.id
   });
 
   const materialsMap = useMemo(() => {
@@ -140,8 +145,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
   };
 
   const budgetQuery = useQuery({
-    queryKey: ["budget", selectedBudget],
-    enabled: !!selectedBudget,
+    queryKey: ["budget", user?.id, selectedBudget],
+    enabled: !!selectedBudget && !!user?.id,
     refetchOnMount: "always",
     queryFn: async () => {
       try {
@@ -390,7 +395,8 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         onClose={() => setOpenProductModal(false)}
         selectedProduct={null}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["products"] });
+          queryClient.invalidateQueries({ queryKey: ["budget-products", user?.id] });
+          queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
           toast.success("Produto adicionado com sucesso!");
         }}
         isFromBudget={true}
@@ -401,7 +407,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
         onClose={() => setOpenClientModal(false)}
         selectedClient={null}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["clients"] });
+          queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
           toast.success("Cliente adicionado com sucesso!");
         }}
         isFromBudget={true}

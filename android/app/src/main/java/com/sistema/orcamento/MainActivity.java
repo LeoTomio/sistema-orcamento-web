@@ -1,4 +1,4 @@
-package com.leonardo.orcamentos;
+package com.sistema.orcamento;
 
 import com.getcapacitor.BridgeActivity;
 

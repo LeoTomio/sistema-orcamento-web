@@ -9,6 +9,7 @@ import Products from "./modules/products/Product";
 import Materials from "./modules/materials/Material";
 import Clients from "./modules/clients/Client";
 import Users from "./modules/user/User";
+import Register from "./modules/register/Register";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/user" element={<Users />} />
         </Route>
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastrar" element={<Register />} />
         <Route path="/*" element={<Navigate to="/login" replace />} />
       </Routes>
 

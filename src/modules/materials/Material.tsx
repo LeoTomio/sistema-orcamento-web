@@ -11,8 +11,10 @@ import { formatMoney } from "../../utils/formaters";
 import { cacheTime, itemPerPageEnum } from "../../utils/enum";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
 
 function Materials() {
+    const { user } = useAuth();
     const queryClient = useQueryClient();
 
     const [selectedMaterial, setSelectedMaterial] = useState<MaterialForm | null>(null);
@@ -22,7 +24,7 @@ function Materials() {
     const [currentPage, setCurrentPage] = useState(1);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["materials", currentPage],
+        queryKey: ["materials", user?.id, currentPage],
         queryFn: () => materialService.getAll(currentPage),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
@@ -38,7 +40,7 @@ function Materials() {
         onSuccess: () => {
             toast.success("Material excluído com sucesso!");
 
-            queryClient.invalidateQueries({ queryKey: ["materials"] });
+            queryClient.invalidateQueries({ queryKey: ["materials", user?.id] });
 
             setTimeout(() => {
                 if (materials.length === 1 && currentPage > 1) {
@@ -55,7 +57,7 @@ function Materials() {
         if (!selectedMaterial) return;
 
         await deleteMutation.mutateAsync(selectedMaterial.id!);
-        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
     };
 
 
@@ -167,8 +169,8 @@ function Materials() {
                     selectedMaterial={selectedMaterial}
                     onSuccess={() => {
                         toast.success(`Material ${selectedMaterial ? "alterado" : "adicionado"} com sucesso!`);
-                        queryClient.invalidateQueries({ queryKey: ["materials"] });
-                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+                        queryClient.invalidateQueries({ queryKey: ["materials", user?.id] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
                     }}
                 />
             }

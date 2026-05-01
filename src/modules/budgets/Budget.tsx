@@ -7,6 +7,7 @@ import { FiletypePdf, PencilFill, TrashFill, VectorPen } from "react-bootstrap-i
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationComponent from "../../components/Pagination";
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/budget.css";
 import { cacheTime, itemPerPageEnum } from '../../utils/enum';
 import { formatMoney } from "../../utils/formaters";
@@ -17,6 +18,7 @@ import type { Budget } from "./types";
 
 export default function Budgets() {
   const queryClient = useQueryClient();
+  const { user } = useAuth()
   const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
@@ -24,10 +26,11 @@ export default function Budgets() {
   const [openSignatureModal, setOpenSignatureModal] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["budgets", currentPage],
+    queryKey: ["budgets", user?.id, currentPage],
     queryFn: () => budgetService.getAll(currentPage),
     staleTime: cacheTime.fiveMinutes,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    enabled: !!user?.id
   })
 
   const budgets = data?.data || []
@@ -43,7 +46,7 @@ export default function Budgets() {
         setCurrentPage((prev) => prev - 1);
       }
 
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets", user?.id] });
     }
   })
 
@@ -52,7 +55,7 @@ export default function Budgets() {
     if (!selectedBudget) return;
 
     deleteMutation.mutateAsync(selectedBudget!)
-    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
     setOpenDeleteModal(false)
   };
 
@@ -221,8 +224,8 @@ export default function Budgets() {
           selectedBudget={selectedBudget}
           onSuccess={() => {
             toast.success(`Orçamento ${selectedBudget ? "alterado" : "adicionado"} com sucesso!`);
-            queryClient.invalidateQueries({ queryKey: ["budgets"] });
-            queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["budgets", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
           }}
         />
       }

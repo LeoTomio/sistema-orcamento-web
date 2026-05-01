@@ -1,14 +1,15 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { Button, Form, Modal, Row, Col, Table } from "react-bootstrap";
+import { Button, Col, Form, Modal, Row, Table } from "react-bootstrap";
+import { TrashFill } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
-import productService from "./Service";
-import materialService from "../materials/Service";
-import type { Product, ProductForm } from "./types";
 import { cacheTime } from "../../utils/enum";
-import { TrashFill } from "react-bootstrap-icons";
 import { formatMoney } from "../../utils/formaters";
+import materialService from "../materials/Service";
+import productService from "./Service";
+import type { Product, ProductForm } from "./types";
+import { useAuth } from "../../context/AuthContext";
 
 interface Props {
     show: boolean;
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function ProductModal({ onClose, show, selectedProduct, onSuccess, isFromBudget }: Props) {
+    const { user } = useAuth()
     const [formData, setFormData] = useState<ProductForm>({
         name: "",
         hasHeight: true,
@@ -27,9 +29,10 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
     });
 
     const materialsQuery = useQuery({
-        queryKey: ["materials"],
+        queryKey: ["materials", user?.id],
         queryFn: () => materialService.getAll(),
-        staleTime: cacheTime.fiveMinutes
+        staleTime: cacheTime.fiveMinutes,
+        enabled: !!user?.id
     });
 
     const availableOptions =
@@ -116,9 +119,9 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
     };
 
     const productDetailsQuery = useQuery({
-        queryKey: ["product", selectedProduct?.id],
+        queryKey: ["product", user?.id, selectedProduct?.id],
         queryFn: () => productService.getById(selectedProduct?.id!),
-        enabled: !!selectedProduct?.id && show,
+        enabled: !!selectedProduct?.id && show && !!user?.id,
     });
 
     useEffect(() => {

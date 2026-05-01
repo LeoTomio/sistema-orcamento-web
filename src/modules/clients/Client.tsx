@@ -10,8 +10,11 @@ import { formatDocument } from "../../utils/formaters";
 import ClientModal from "./Modal";
 import clientService from "./Service";
 import type { Client } from "./types";
+import { useAuth } from "../../context/AuthContext";
 
 function Clients() {
+
+    const { user } = useAuth()
     const queryClient = useQueryClient();
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [openModal, setOpenModal] = useState(false);
@@ -20,7 +23,7 @@ function Clients() {
     const [currentPage, setCurrentPage] = useState(1);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["clients", currentPage],
+        queryKey: ["clients", user?.id, currentPage],
         queryFn: () => clientService.getAll(currentPage),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false
@@ -38,7 +41,7 @@ function Clients() {
                 setCurrentPage(prev => prev - 1);
             }
 
-            queryClient.invalidateQueries({ queryKey: ["clients"] });
+            queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
             setOpenDeleteModal(false)
         },
     })
@@ -46,7 +49,7 @@ function Clients() {
         if (!selectedClient) return;
 
         await deleteMutation.mutateAsync(selectedClient.id!);
-        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
 
     };
 
@@ -151,8 +154,8 @@ function Clients() {
                     selectedClient={selectedClient}
                     onSuccess={() => {
                         toast.success(`Cliente ${selectedClient ? "alterado" : "adicionado"} com sucesso!`);
-                        queryClient.invalidateQueries({ queryKey: ["clients"] });
-                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+                        queryClient.invalidateQueries({ queryKey: ["clients", user?.id] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
                     }}
                 />}
 

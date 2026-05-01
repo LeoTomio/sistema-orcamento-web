@@ -5,7 +5,7 @@ import { NavLink } from "react-router-dom";
 import "../../styles/sidebar.css";
 
 export default function Sidebar() {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
 
     return (
         <div className={`sidebar ${open ? "open" : "closed"}`}>

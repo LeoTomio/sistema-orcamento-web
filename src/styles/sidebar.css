@@ -1,22 +1,22 @@
 /* Layout geral */
 .layout-container {
     display: flex;
-    min-height: 100vh;
+    min-height: 100dvh;
 }
 
 /* Sidebar */
 .sidebar {
     background: var(--headers-bg);
     color: white !important;
-    height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     transition: width 0.5s ease;
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
-    overflow: hidden;
-    margin-right: 1rem;
+    flex-shrink: 0;
+    border: none !important;
 }
 
 .sidebar.open {
@@ -40,7 +40,7 @@
     background-color: #515f91 !important;
     color: white !important;
     padding: 6px 9px !important;
-    margin:0px !important
+    margin: 0px !important
 }
 
 /* Menu margin */
@@ -74,15 +74,14 @@
     width: 100%;
 }
 
-.sidebar.open+.content-area {
-    margin-left: 200px;
-}
-
-.sidebar.closed+.content-area {
-    margin-left: 70px;
-}
 
 .page-content {
     flex: 1;
     padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar.open {
+        width: 160px;
+    }
 }

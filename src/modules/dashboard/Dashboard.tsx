@@ -5,14 +5,16 @@ import { Boxes, CashStack, CurrencyDollar, Layers, People, Tools, Wallet2 } from
 import { cacheTime } from "../../utils/enum";
 import { formatMoney } from "../../utils/formaters";
 import dashboardService from "./Service";
+import { useAuth } from "../../context/AuthContext";
 
 const Dashboard = () => {
-
+    const { user } = useAuth()
     const { data, isLoading } = useQuery({
-        queryKey: ["dashboard"],
+        queryKey: ["dashboard", user?.id],
         queryFn: () => dashboardService.getAll(),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
+        enabled: !!user?.id
     });
 
     return (

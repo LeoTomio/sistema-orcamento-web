@@ -11,8 +11,10 @@ import { formatMoney } from "../../utils/formaters";
 import { cacheTime, itemPerPageEnum } from "../../utils/enum";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
 
 function Products() {
+    const { user } = useAuth()
     const queryClient = useQueryClient();
 
     const [selectedProduct, setSelectedProduct] = useState<ProductForm | null>(null);
@@ -22,10 +24,11 @@ function Products() {
     const [currentPage, setCurrentPage] = useState(1);
 
     const { data, isLoading } = useQuery({
-        queryKey: ["products", currentPage],
+        queryKey: ["products", user?.id, currentPage],
         queryFn: () => productService.getAll(currentPage),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
+        enabled: !!user?.id
     });
 
     const products = data?.data || [];
@@ -36,7 +39,7 @@ function Products() {
         onSuccess: () => {
             toast.success("Produto excluído com sucesso!");
 
-            queryClient.invalidateQueries({ queryKey: ["products"] });
+            queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
 
             setTimeout(() => {
                 if (products.length === 1 && currentPage > 1) {
@@ -53,7 +56,7 @@ function Products() {
         if (!selectedProduct) return;
 
         await deleteMutation.mutateAsync(selectedProduct.id!);
-        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
     };
 
     const handleEdit = (product: ProductForm) => {
@@ -165,8 +168,8 @@ function Products() {
                     selectedProduct={selectedProduct}
                     onSuccess={() => {
                         toast.success(`Produto ${selectedProduct ? "alterado" : "adicionado"} com sucesso!`);
-                        queryClient.invalidateQueries({ queryKey: ["products"] });
-                        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+                        queryClient.invalidateQueries({ queryKey: ["products", user?.id] });
+                        queryClient.invalidateQueries({ queryKey: ["dashboard", user?.id] });
                     }}
                 />}
 

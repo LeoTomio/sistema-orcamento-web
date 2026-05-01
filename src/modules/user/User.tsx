@@ -9,8 +9,10 @@ import { formatPhone } from "../../utils/formaters";
 import { onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
+import { useAuth } from "../../context/AuthContext";
 
 function Users() {
+    const { user: authUser } = useAuth()
     const queryClient = useQueryClient()
     const [userData, setUserData] = useState<User>({
         name: "",
@@ -26,7 +28,7 @@ function Users() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const { data } = useQuery({
-        queryKey: ["user"],
+        queryKey: ["user", authUser?.id],
         queryFn: () => userService.getUser(),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false
@@ -49,7 +51,7 @@ function Users() {
         mutationFn: (user: User) => userService.updateUser(user),
         onSuccess: () => {
             toast.success("Usuário atualizado com sucesso")
-            queryClient.invalidateQueries({ queryKey: ["user"] });
+            queryClient.invalidateQueries({ queryKey: ["user", authUser?.id] });
         },
 
         onError: () => {

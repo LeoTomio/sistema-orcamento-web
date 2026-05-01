@@ -24,6 +24,7 @@ export default function MaterialModal({ onClose, show, selectedMaterial, onSucce
     });
 
     const saveMutation = useMutation({
+
         mutationFn: async (data: Material) => {
             if (selectedMaterial) return materialService.update(data);
 
@@ -87,7 +88,7 @@ export default function MaterialModal({ onClose, show, selectedMaterial, onSucce
         }));
     };
 
-    
+
     useEffect(() => {
         if (!show) return;
         if (selectedMaterial) {
