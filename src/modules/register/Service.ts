@@ -3,7 +3,8 @@ import type { RegisterData } from "./types";
 
 const registerService = {
     register: async (data: RegisterData) => {
-        const response = await api.post('/user/register', data);
+        console.log(data)
+        const response = await api.post('/user', data);
         return response.data;
     },
 };

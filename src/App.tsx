@@ -10,6 +10,7 @@ import Materials from "./modules/materials/Material";
 import Clients from "./modules/clients/Client";
 import Users from "./modules/user/User";
 import Register from "./modules/register/Register";
+import Plans from "./modules/plans/Plan";
 
 function App() {
   return (
@@ -19,11 +20,12 @@ function App() {
         <Route path="/" element={<PageLayout />}>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/budgets" element={<Budgets />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/materials" element={<Materials />} />
-          <Route path="/user" element={<Users />} />
+          <Route path="/orcamentos" element={<Budgets />} />
+          <Route path="/produtos" element={<Products />} />
+          <Route path="/clientes" element={<Clients />} />
+          <Route path="/materiais" element={<Materials />} />
+          <Route path="/usuario" element={<Users />} />
+          <Route path="/planos" element={<Plans />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastrar" element={<Register />} />

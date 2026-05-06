@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Nav } from "react-bootstrap";
-import { BarChart, Boxes, CashStack, ChevronDoubleLeft, ChevronDoubleRight, Layers, People, PersonCircle } from "react-bootstrap-icons";
+import { BarChart, Boxes, CashStack, ChevronDoubleLeft, ChevronDoubleRight, Layers, People, PersonCircle, Tags } from "react-bootstrap-icons";
 import { NavLink } from "react-router-dom";
 import "../../styles/sidebar.css";
 
@@ -39,7 +39,7 @@ export default function Sidebar() {
 
                 <Nav.Link
                     as={NavLink}
-                    to="/budgets"
+                    to="/orcamentos"
                     className="menu-item"
                 >
                     <CashStack  size={20} className="me-2" />
@@ -48,7 +48,7 @@ export default function Sidebar() {
 
                 <Nav.Link
                     as={NavLink}
-                    to="/products"
+                    to="/produtos"
                     className="menu-item"
                 >
                     <Boxes size={20} className="me-2" />
@@ -57,7 +57,7 @@ export default function Sidebar() {
 
                 <Nav.Link
                     as={NavLink}
-                    to="/materials"
+                    to="/materiais"
                     className="menu-item"
                 >
                     <Layers size={20} className="me-2" />
@@ -66,7 +66,7 @@ export default function Sidebar() {
 
                 <Nav.Link
                     as={NavLink}
-                    to="/clients"
+                    to="/clientes"
                     className="menu-item"
                 >
                     <People size={20} className="me-2" />
@@ -75,12 +75,22 @@ export default function Sidebar() {
 
                 <Nav.Link
                     as={NavLink}
-                    to="/user"
+                    to="/usuario"
                     className="menu-item"
                 >
                     <PersonCircle size={20} className="me-2" />
                     {open && "Usuário"}
                 </Nav.Link>
+
+                 <Nav.Link
+                    as={NavLink}
+                    to="/planos"
+                    className="menu-item"
+                >
+                    <Tags size={20} className="me-2" />
+                    {open && "Planos"}
+                </Nav.Link>
+
             </Nav>
         </div>
     );

@@ -5,8 +5,8 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
 import { cacheTime } from "../../utils/enum";
-import { formatPhone } from "../../utils/formaters";
-import { onlyNumbers } from "../../utils/validators";
+import { formatDocument, formatPhone } from "../../utils/formaters";
+import { isValidCNPJ, isValidCPF, onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
 import { useAuth } from "../../context/AuthContext";
@@ -20,7 +20,8 @@ function Users() {
         address: "",
         email: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        document: ""
     } as User);
 
 
@@ -29,7 +30,18 @@ function Users() {
 
     const { data } = useQuery({
         queryKey: ["user", authUser?.id],
-        queryFn: () => userService.getUser(),
+        queryFn: async () => {
+            try {
+                const response = await userService.getUser()
+                return {
+                    ...response,
+                    document: formatDocument(response.document),
+                };
+            } catch (err) {
+                toast.error("Erro ao carregar usuário");
+                throw err;
+            }
+        },
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false
     })
@@ -82,6 +94,22 @@ function Users() {
             toast.error("O email é inválido")
             return
         }
+        const numbers = onlyNumbers(userData.document);
+
+        if (userData.document && (numbers.length !== 11 && numbers.length !== 14)) {
+            toast.warning("Documento deve ter 11 ou 14 dígitos");
+            return;
+        }
+
+        if (userData.document && (numbers.length === 11 && !isValidCPF(userData.document))) {
+            toast.warning("CPF inválido");
+            return;
+        }
+
+        if (userData.document && (numbers.length === 14 && !isValidCNPJ(userData.document))) {
+            toast.warning("CNPJ inválido");
+            return;
+        }
 
         if (userData?.password && !userData?.confirmPassword) {
             toast.warning('Para alterar a senha é necessário confirmar senha')
@@ -96,6 +124,7 @@ function Users() {
             email: userData.email,
             phone: userData.phone,
             address: userData.address,
+            document: numbers,
             ...(userData.password ? { password: userData.password } : {})
         };
 
@@ -105,8 +134,9 @@ function Users() {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         let formatedValue = value
-
-        if (name === "phone") {
+        if (name === "document") {
+            formatedValue = formatDocument(value);
+        } else if (name === "phone") {
             formatedValue = onlyNumbers(value).slice(0, 11);
         }
 
@@ -148,7 +178,19 @@ function Users() {
                                 />
                             </Form.Group>
                         </Col>
-                        <Col xs={12}>
+
+                        <Col lg={4} xs={12}>
+                            <Form.Group className="mb-2">
+                                <Form.Label>CPF/CNPJ</Form.Label>
+                                <Form.Control
+                                    name="document"
+                                    value={userData?.document}
+                                    onChange={handleChange}
+                                    placeholder="Digite CPF ou CNPJ"
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col lg={8} xs={12}>
                             <Form.Group className="mb-1">
                                 <RequiredLabel>Endereço</RequiredLabel>
                                 <Form.Control
