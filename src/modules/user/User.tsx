@@ -5,11 +5,13 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { toast } from "sonner";
 import RequiredLabel from "../../components/RequiredLabel";
 import { cacheTime } from "../../utils/enum";
-import { formatDocument, formatPhone } from "../../utils/formaters";
+import { formatDocument, formatPhone, formatPostalCode } from "../../utils/formaters";
 import { isValidCNPJ, isValidCPF, onlyNumbers } from "../../utils/validators";
 import userService from "./Service";
 import type { User } from "./types";
 import { useAuth } from "../../context/AuthContext";
+import globalService from "../../services/globalService";
+import CustomSelect from "../../components/CustomSelect";
 
 function Users() {
     const { user: authUser } = useAuth()
@@ -18,15 +20,30 @@ function Users() {
         name: "",
         phone: "",
         address: "",
+        number: "",
+        city: "",
+        state: "",
+        postalCode: "",
         email: "",
         password: "",
         confirmPassword: "",
         document: ""
     } as User);
-
-
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const statesQuery = useQuery({
+        queryKey: ["states"],
+        queryFn: () => globalService.getStates(),
+        staleTime: cacheTime.fiveMinutes
+    });
+
+    const citiesQuery = useQuery({
+        queryKey: ["cities", userData.state],
+        queryFn: () => globalService.getCities(userData.state),
+        staleTime: cacheTime.fiveMinutes,
+        enabled: !!userData.state
+    });
 
     const { data } = useQuery({
         queryKey: ["user", authUser?.id],
@@ -35,7 +52,8 @@ function Users() {
                 const response = await userService.getUser()
                 return {
                     ...response,
-                    document: formatDocument(response.document),
+                    document: response.document ? formatDocument(response.document) : "",
+                    postalCode: response.postalCode ? formatPostalCode(response.postalCode) : "",
                 };
             } catch (err) {
                 toast.error("Erro ao carregar usuário");
@@ -81,15 +99,35 @@ function Users() {
             toast.warning('Campo telefone é obrigatório')
             return
         }
-
-        if (!userData?.address) {
-            toast.warning('Campo endereço é obrigatório')
-            return
+        if (!userData.postalCode) {
+            toast.warning("Campo CEP é obrigatório");
+            return;
         }
+        if (!userData.state) {
+            toast.warning("Campo estado é obrigatório");
+            return;
+        }
+
+        if (!userData.city) {
+            toast.warning("Campo cidade é obrigatório");
+            return;
+        }
+
+        if (!userData.address) {
+            toast.warning("Campo endereço é obrigatório");
+            return;
+        }
+
+        if (!userData.number) {
+            toast.warning("Campo número é obrigatório");
+            return;
+        }
+
         if (!userData?.email) {
             toast.warning('Campo email é obrigatório')
             return
         }
+
         if (!userData.email.includes("@") || !userData.email.includes(".")) {
             toast.error("O email é inválido")
             return
@@ -124,6 +162,10 @@ function Users() {
             email: userData.email,
             phone: userData.phone,
             address: userData.address,
+            number: userData.number,
+            city: userData.city,
+            state: userData.state,
+            postalCode: userData.postalCode,
             document: numbers,
             ...(userData.password ? { password: userData.password } : {})
         };
@@ -133,17 +175,59 @@ function Users() {
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        let formatedValue = value
+
+        let formatedValue = value;
+
         if (name === "document") {
             formatedValue = formatDocument(value);
+
         } else if (name === "phone") {
             formatedValue = onlyNumbers(value).slice(0, 11);
+
+        } else if (name === "postalCode") {
+            const numbers = onlyNumbers(value).slice(0, 8);
+
+            formatedValue = numbers.replace(
+                /^(\d{5})(\d)/,
+                "$1-$2"
+            );
         }
 
         setUserData(prev => ({
             ...prev,
             [name]: formatedValue
         }));
+    };
+
+    const handlePostalCode = async (value: string) => {
+        const numbers = onlyNumbers(value).slice(0, 8);
+
+        const formatted = numbers.replace(
+            /^(\d{5})(\d)/,
+            "$1-$2"
+        );
+
+        setUserData(prev => ({
+            ...prev,
+            postalCode: formatted
+        }));
+
+        if (numbers.length === 8) {
+            try {
+                const response = await globalService.getAddressByPostalCode(numbers);
+
+                setUserData(prev => ({
+                    ...prev,
+                    postalCode: formatted,
+                    address: response.logradouro || "",
+                    city: response.localidade || "",
+                    state: response.uf || "",
+                }));
+
+            } catch {
+                toast.warning("CEP não encontrado");
+            }
+        }
     };
 
     return (
@@ -179,7 +263,7 @@ function Users() {
                             </Form.Group>
                         </Col>
 
-                        <Col lg={4} xs={12}>
+                        <Col lg={3} xs={12}>
                             <Form.Group className="mb-2">
                                 <Form.Label>CPF/CNPJ</Form.Label>
                                 <Form.Control
@@ -190,14 +274,90 @@ function Users() {
                                 />
                             </Form.Group>
                         </Col>
-                        <Col lg={8} xs={12}>
-                            <Form.Group className="mb-1">
+                        <Col lg={3} xs={12}>
+                            <Form.Group className="mb-2">
+                                <RequiredLabel>CEP</RequiredLabel>
+                                <Form.Control
+                                    name="postalCode"
+                                    value={userData.postalCode || ""}
+                                    onChange={(e) => handlePostalCode(e.target.value)}
+                                    placeholder="00000-000"
+                                    inputMode="numeric"
+                                />
+                            </Form.Group>
+                        </Col>
+
+                        <Col lg={2} xs={12}>
+                            <Form.Group className="mb-2">
+                                <RequiredLabel>Estado</RequiredLabel>
+                                <CustomSelect
+                                    options={statesQuery.data?.map((s: any) => ({
+                                        value: s.sigla,
+                                        label: s.sigla,
+                                    }))
+                                        .sort((a: any, b: any) =>
+                                            a.label.localeCompare(b.label)
+                                        ) || []
+                                    }
+                                    value={userData.state}
+                                    isLoading={statesQuery.isLoading}
+                                    onChange={(value) =>
+                                        setUserData(prev => ({
+                                            ...prev,
+                                            state: String(value),
+                                            city: ""
+                                        }))
+                                    }
+                                />
+                            </Form.Group>
+                        </Col>
+
+                        <Col lg={4} xs={12}>
+                            <Form.Group className="mb-2">
+                                <RequiredLabel>Cidade</RequiredLabel>
+
+                                <CustomSelect
+                                    options={citiesQuery.data?.map((s: any) => ({
+                                        value: s.nome,
+                                        label: s.nome,
+                                    })).sort((a: any, b: any) =>
+                                        a.label.localeCompare(b.label)
+                                    ) || []
+                                    }
+                                    value={userData.city}
+                                    isLoading={citiesQuery.isLoading}
+                                    onChange={(value) =>
+                                        setUserData(prev => ({
+                                            ...prev,
+                                            city: String(value)
+                                        }))
+                                    }
+                                />
+                            </Form.Group>
+                        </Col>
+
+                        <Col lg={9} xs={12}>
+                            <Form.Group className="mb-2">
                                 <RequiredLabel>Endereço</RequiredLabel>
+
                                 <Form.Control
                                     name="address"
-                                    value={userData?.address || ""}
+                                    value={userData.address}
                                     onChange={handleChange}
+                                    placeholder="Rua, avenida..."
+                                />
+                            </Form.Group>
+                        </Col>
 
+                        <Col lg={3} xs={12}>
+                            <Form.Group className="mb-2">
+                                <RequiredLabel>Número</RequiredLabel>
+
+                                <Form.Control
+                                    name="number"
+                                    value={userData.number}
+                                    onChange={handleChange}
+                                    placeholder="123"
                                 />
                             </Form.Group>
                         </Col>

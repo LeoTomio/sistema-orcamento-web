@@ -13,7 +13,8 @@ export type SubscribeRequest = {
     planId: string;
     billing: BillingType;
     paymentType: PaymentType;
-    creditCardToken?: string;
+    isRecurring: boolean
+    creditCard: any
 };
 
 export type CreditCard = {

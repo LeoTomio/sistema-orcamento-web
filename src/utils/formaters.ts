@@ -58,3 +58,12 @@ export function statusConverter(status: string) {
   if (status === "CANCELED") return "Cancelado";
 
 }
+
+export function formatPostalCode(value: string) {
+  const numbers = value.replace(/\D/g, "").slice(0, 8);
+
+  return numbers.replace(
+    /^(\d{5})(\d)/,
+    "$1-$2"
+  );
+}

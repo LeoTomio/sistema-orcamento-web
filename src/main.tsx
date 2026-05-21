@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from "react-router-dom";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PaymentProvider } from "./context/PaymentContext";
 
 const queryClient = new QueryClient();
 
@@ -22,8 +23,10 @@ createRoot(rootElement).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Toaster closeButton richColors />
-          <App />
+          <PaymentProvider>
+            <Toaster closeButton richColors />
+            <App />
+          </PaymentProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

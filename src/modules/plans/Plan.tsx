@@ -7,13 +7,24 @@ import planService from "./Service";
 import { SubscribeModal } from "./Modal";
 import { useState } from "react";
 import type { BillingType } from "./types";
+import { useAuth } from "../../context/AuthContext";
+import { RefundModal } from "./RefundModel";
 
 function Plans() {
+    const { user } = useAuth()
 
     const [openSubscribeModal, setOpenSubscribeModal] = useState(false);
+    const [refundSubscription, setRefundSubscription] = useState<any>(null);
     const [selectedPlan, setSelectedPlan] = useState({
         plan: { id: "", name: "", monthlyPrice: 0, yearlyPrice: 0 },
         billing: "monthly" as BillingType,
+    });
+
+    const { data: currentSubscription } = useQuery({
+        queryKey: ["current-subscription", user?.id],
+        queryFn: () => planService.getCurrentSubscription(),
+        staleTime: cacheTime.fiveMinutes,
+        refetchOnWindowFocus: false,
     });
 
     const { data, isLoading } = useQuery({
@@ -47,6 +58,7 @@ function Plans() {
                 {!isLoading &&
                     <PricingCard
                         plans={plans}
+                        currentSubscription={currentSubscription}
                         features={[
                             "Gestão de clientes",
                             "Orçamentos ilimitados",
@@ -55,16 +67,28 @@ function Plans() {
                         ]}
                         onSubscribe={async (plan, billing) => {
                             setOpenSubscribeModal(true);
-                            setSelectedPlan({ plan, billing }); 
+                            setSelectedPlan({ plan, billing });
+                        }}
+                        onRefund={(subscription) => {
+                            setRefundSubscription(subscription);
                         }}
                     />
                 }
             </Row>
-            <SubscribeModal
-                show={openSubscribeModal}
-                selectedPlan={selectedPlan}
-                onHide={() => setOpenSubscribeModal(false)}
-            />
+            {openSubscribeModal &&
+                <SubscribeModal
+                    show={openSubscribeModal}
+                    selectedPlan={selectedPlan}
+                    onHide={() => setOpenSubscribeModal(false)}
+                />
+            }
+            {refundSubscription && (
+                <RefundModal
+                    show={!!refundSubscription}
+                    subscription={refundSubscription}
+                    onHide={() => setRefundSubscription(null)}
+                />
+            )}
         </>
     );
 }

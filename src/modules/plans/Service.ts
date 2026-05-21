@@ -1,5 +1,5 @@
 import { api } from "../../services/api";
-import type { CreditCard, Plan, SubscribeRequest } from "./types";
+import type { Plan, SubscribeRequest } from "./types";
 
 const planService = {
 
@@ -7,36 +7,28 @@ const planService = {
         const response = await api.get("/plan");
         return response.data;
     },
-
-
-    
-    async subscribe(subscription: SubscribeRequest) {
-        const response = await api.post("/subscribe", subscription);
+    async getCurrentSubscription() {
+        const response = await api.get("subscription");
+        console.log(response.data)
         return response.data;
     },
 
-    async generateCardToken(card: CreditCard) {
-        const response = await fetch("https://sandbox.asaas.com/api/v3/creditCard/tokenize", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                access_token: import.meta.env.VITE_ASAAS_API_KEY, // cuidado aqui
-            },
-            body: JSON.stringify({
-                creditCard: {
-                    holderName: card.holderName,
-                    number: card.number,
-                    expiryMonth: card.expiryMonth,
-                    expiryYear: card.expiryYear,
-                    ccv: card.ccv,
-                },
-            }),
-        });
 
-        const data = await response.json();
-        return data.creditCardToken;
+
+    async subscribe(subscription: SubscribeRequest) {
+        const response = await api.post("subscription/subscribe", subscription);
+        return response.data;
+    },
+
+    async refund(subscriptionId: string) {
+        console.log('id', subscriptionId)
+        return await api.post(`/subscription/${subscriptionId}/refund`);
+    },
+
+    async refundPreview(subscriptionId: string) {
+        const response = await api.get(`/subscription/${subscriptionId}/refund-preview`);
+        return response.data
     }
-
 };
 
 export default planService;

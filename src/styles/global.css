@@ -44,6 +44,10 @@ input {
   font-size: 0.95rem;
 }
 
+input[type="radio"] {
+    padding: 0 !important;
+}
+
 .form-control:focus {
   box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, .25) !important
 }
