@@ -4,9 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.sistema.orcamento',
   appName: 'Sistema de Orçamentos',
   webDir: 'dist',
-  server: {
-    androidScheme: 'https'
-  }
+  // //Produção:
+  // server: {
+  //   androidScheme: 'https'
+  // }
 };
 
 //  appId: 'com.leonardo.orcamentos',

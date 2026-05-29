@@ -20,8 +20,6 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
     const [isPolling, setIsPolling] = useState(false);
 
     const joinPaymentRoom = useCallback((subscriptionId: string) => {
-        console.log("entrou na sala", subscriptionId);
-
         socket.emit("join-payment", subscriptionId);
     }, []);
 
@@ -42,7 +40,6 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
         socket.connect();
 
         socket.on("connect", () => {
-            console.log("socket conectado");
         });
 
         socket.on("connect_error", (err) => {
@@ -98,7 +95,6 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
         queryKey: ["payment-polling"],
         queryFn: async () => {
             const response = await planService.getCurrentSubscription();
-            console.log(response);
             if (response?.status === "ACTIVE" || response?.status === "SCHEDULED") {
                 toast.success("Pagamento confirmado com sucesso!");
             } else if (

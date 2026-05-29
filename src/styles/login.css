@@ -2,17 +2,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 80vh;
+    min-height: 80vh;
+    padding: 2rem 1rem;
     background: #f4f4f5;
 }
 
 .login-container .card {
     width: 400px;
+    max-width: 100%;
     padding: 1rem;
     border: none;
     border-radius: 1rem;
     background: #ffffff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: visible;
 }
 
 .login-container .home-icon {
@@ -47,6 +50,7 @@
 }
 
 /* ===== INPUT ===== */
+
 .login-container .form-control {
     flex: 1;
     border-radius: 0.6rem;
@@ -54,3 +58,33 @@
     padding: 0 0.8rem;
     font-size: 0.95rem;
 }
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 768px) {
+
+    .login-container {
+        align-items: flex-start;
+        justify-content: flex-start;
+        min-height: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .login-container .card {
+        width: 100%;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.8rem;
+    }
+
+    .login-container .card-header {
+        font-size: 1.7rem;
+    }
+
+    .login-container .icon-circle {
+        width: 60px;
+        height: 60px;
+    }
+}
+

@@ -55,8 +55,7 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
     onSuccess: () => {
       onSuccess();
       handleClose();
-    },
-    onError: () => toast.error("Erro ao salvar cliente")
+    }
   })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -131,7 +130,6 @@ export default function ClientModal({ show, onClose, selectedClient, onSuccess, 
           document: formatDocument(response.document),
         };
       } catch (err) {
-        toast.error("Erro ao carregar cliente");
         throw err;
       }
     },

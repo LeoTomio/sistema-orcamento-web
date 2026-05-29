@@ -3,6 +3,7 @@ export interface Plan {
     name: string;
     monthlyPrice: number;
     yearlyPrice: number;
+    trialDays?: number
 }
 
 export type BillingType = "monthly" | "yearly";

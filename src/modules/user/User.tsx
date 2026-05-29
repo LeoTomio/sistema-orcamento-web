@@ -56,7 +56,6 @@ function Users() {
                     postalCode: response.postalCode ? formatPostalCode(response.postalCode) : "",
                 };
             } catch (err) {
-                toast.error("Erro ao carregar usuário");
                 throw err;
             }
         },
@@ -82,10 +81,6 @@ function Users() {
         onSuccess: () => {
             toast.success("Usuário atualizado com sucesso")
             queryClient.invalidateQueries({ queryKey: ["user", authUser?.id] });
-        },
-
-        onError: () => {
-            toast.error('Erro ao atualizar usuário')
         }
     })
 
@@ -129,7 +124,7 @@ function Users() {
         }
 
         if (!userData.email.includes("@") || !userData.email.includes(".")) {
-            toast.error("O email é inválido")
+            toast.warning("O email é inválido")
             return
         }
         const numbers = onlyNumbers(userData.document);

@@ -21,12 +21,12 @@ const Login = () => {
         e.preventDefault()
 
         if (!formData.email.includes("@") || !formData.email.includes(".")) {
-            toast.error("Digite um email válido")
+            toast.warning("Digite um email válido")
             return
         }
 
         if (!formData.password) {
-            toast.error("Informe a senha")
+            toast.warning("Informe a senha")
             return
         }
 

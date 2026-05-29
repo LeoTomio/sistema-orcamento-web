@@ -9,7 +9,6 @@ const planService = {
     },
     async getCurrentSubscription() {
         const response = await api.get("subscription");
-        console.log(response.data)
         return response.data;
     },
 
@@ -21,7 +20,6 @@ const planService = {
     },
 
     async refund(subscriptionId: string) {
-        console.log('id', subscriptionId)
         return await api.post(`/subscription/${subscriptionId}/refund`);
     },
 

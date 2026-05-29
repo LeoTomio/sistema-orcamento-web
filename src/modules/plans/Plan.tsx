@@ -2,17 +2,18 @@ import { Card, Col, Row } from "react-bootstrap";
 import { cacheTime } from "../../utils/enum";
 
 import { useQuery } from "@tanstack/react-query";
-import PricingCard from "./PricingCard";
-import planService from "./Service";
-import { SubscribeModal } from "./Modal";
 import { useState } from "react";
-import type { BillingType } from "./types";
+import { Alert } from "react-bootstrap";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { SubscribeModal } from "./Modal";
+import PricingCard from "./PricingCard";
 import { RefundModal } from "./RefundModel";
+import planService from "./Service";
+import type { BillingType } from "./types";
 
 function Plans() {
     const { user } = useAuth()
-
     const [openSubscribeModal, setOpenSubscribeModal] = useState(false);
     const [refundSubscription, setRefundSubscription] = useState<any>(null);
     const [selectedPlan, setSelectedPlan] = useState({
@@ -36,11 +37,27 @@ function Plans() {
 
     const plans = data || [];
 
+    const location = useLocation();
+
+    const expired =
+        location.state?.expired ||
+        localStorage.getItem("showExpiredMessage") === "true";
+
+
     return (
         <>
             <Row className="d-flex justify-content-between align-items-center mb-4">
                 <Col xs={12}>
-                    <h2 className="mb-1">Planos</h2>
+                    <h2 className="mb-1">
+                        Planos
+                    </h2>
+
+                    {expired && (
+                        <Alert variant="warning" className="mt-3 rounded-4 text-center">
+                            Seu plano expirou.
+                            Escolha um plano para continuar utilizando o sistema.
+                        </Alert>
+                    )}
                 </Col>
             </Row>
             <Row className="d-flex justify-content-center">

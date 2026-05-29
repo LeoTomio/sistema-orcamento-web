@@ -33,8 +33,7 @@ export default function MaterialModal({ onClose, show, selectedMaterial, onSucce
         onSuccess: () => {
             onSuccess();
             handleClose();
-        },
-        onError: () => toast.error("Erro ao salvar material"),
+        }
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

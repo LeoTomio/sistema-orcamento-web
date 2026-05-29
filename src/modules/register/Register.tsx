@@ -25,27 +25,27 @@ const Register = () => {
         e.preventDefault()
 
         if (!formData.name) {
-            toast.error("Informe o nome")
+            toast.warning("Informe o nome")
             return
         }
 
         if (!formData.email.includes("@") || !formData.email.includes(".")) {
-            toast.error("Digite um email válido")
+            toast.warning("Digite um email válido")
             return
         }
 
         if (!formData.password) {
-            toast.error("Informe a senha")
+            toast.warning("Informe a senha")
             return
         }
 
         if (!formData.confirm_password) {
-            toast.error("Informe a confirmação da senha")
+            toast.warning("Informe a confirmação da senha")
             return
         }
 
         if (formData.confirm_password != formData.password) {
-            toast.error("As senhas devem ser iguais")
+            toast.warning("As senhas devem ser iguais")
             return
         }
         try {

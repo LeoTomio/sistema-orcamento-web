@@ -66,6 +66,10 @@
     margin-right: 1rem;
 }
 
+.sidebar-menu-margin .nav-link:focus {
+    color: #ffffff !important;
+}
+
 .content-area {
     flex: 1;
     display: flex;

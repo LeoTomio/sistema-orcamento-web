@@ -37,9 +37,19 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
     const availableOptions =
         materialsQuery.data?.data
-            .filter(m => !formData.materials.some(item => item.materialId === m.id))
+            .filter(m =>
+                !formData.materials.some(
+                    item =>
+                        item.materialId === m.id &&
+                        !item._delete
+                )
+            )
             .sort((a, b) => a.name.localeCompare(b.name))
-            .map(m => ({ value: m.id!, label: m.name, price: m.price })) ?? [];
+            .map(m => ({
+                value: m.id!,
+                label: m.name,
+                price: m.price
+            })) ?? [];
 
     const saveMutation = useMutation({
         mutationFn: async (data: Product) => {
@@ -52,8 +62,7 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
         onSuccess: () => {
             onSuccess();
             handleClose();
-        },
-        onError: () => toast.error("Erro ao salvar produto"),
+        }
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -64,7 +73,11 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
         const price = formData.materials.reduce((acc, item) => {
             const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
-            return acc + (Number(mat?.price) ?? 0) * item.quantity;
+            const multiplier = getCalcMultiplier(item.calc_type);
+            return (
+                acc + ((Number(mat?.price) ?? 0) * item.quantity * multiplier)
+            );
+
         }, 0);
 
         const payload: Product = { ...formData, price };
@@ -102,20 +115,27 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
     const removeMaterial = (index: number) => {
         const updated = [...formData.materials];
+
         const item = updated[index];
 
         // se já existe no banco, marcar como deletado
         if (item.id) {
+
             updated[index] = {
                 ...item,
                 _delete: true
             };
+
         } else {
+
             // se não existe no banco, remover normalmente
             updated.splice(index, 1);
         }
 
-        setFormData(prev => ({ ...prev, materials: updated }));
+        setFormData(prev => ({
+            ...prev,
+            materials: updated
+        }));
     };
 
     const productDetailsQuery = useQuery({
@@ -149,9 +169,44 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
         onClose();
     };
 
+    const getCalcMultiplier = (calcType: string) => {
+
+        switch (calcType) {
+
+            case "AREA":
+                return 1 * 1;
+
+            case "PERIMETER":
+                return (1 + 1 + 1 + 1);
+
+            case "WIDTH":
+                return 1;
+
+            case "HEIGHT":
+                return 1;
+
+            case "FIXED":
+            default:
+                return 1;
+        }
+    };
+
+
     const totalPrice = formData.materials.reduce((acc, item) => {
-        const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
-        return acc + (Number(mat?.price) ?? 0) * item.quantity;
+
+        const mat = materialsQuery.data?.data.find(
+            m => m.id === item.materialId
+        );
+
+        const multiplier = getCalcMultiplier(item.calc_type);
+
+        return (
+            acc +
+            ((Number(mat?.price) ?? 0)
+                * item.quantity
+                * multiplier)
+        );
+
     }, 0);
 
     const getDimensionMessage = () => {
@@ -189,6 +244,9 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
 
         return ""; // nenhum dos dois
     };
+
+
+
 
     return (
         <Modal centered show={show} onHide={handleClose} size="lg" backdrop={isFromBudget ? false : "static"}>
@@ -270,55 +328,83 @@ export default function ProductModal({ onClose, show, selectedProduct, onSuccess
                         </thead>
 
                         <tbody>
-                            {formData.materials.filter(item => !item._delete).map((item, i) => {
-                                const mat = materialsQuery.data?.data.find(m => m.id === item.materialId);
-                                return (
-                                    <tr key={i}>
-                                        <td className="align-content-center">{mat?.name}</td>
+                            {formData.materials.map((item, originalIndex) => ({ item, originalIndex }))
+                                .filter(({ item }) => !item._delete)
+                                .map(({ item, originalIndex }) => {
 
-                                        <td className="align-content-center text-center">
-                                            <Form.Control
-                                                type="number"
-                                                min={0}
-                                                value={item.quantity}
-                                                onChange={(e) =>
-                                                    updateMaterial(i, "quantity", Number(e.target.value))
-                                                }
-                                            />
-                                        </td>
+                                    const mat = materialsQuery.data?.data.find(
+                                        m => m.id === item.materialId
+                                    );
 
-                                        <td className="align-content-center text-center">
-                                            <Form.Select
-                                                value={item.calc_type}
-                                                onChange={(e) =>
-                                                    updateMaterial(i, "calc_type", e.target.value)
-                                                }
-                                            >
-                                                <option value="AREA">Área (L x A)</option>
-                                                <option value="PERIMETER">Perímetro</option>
-                                                <option value="HEIGHT">Altura</option>
-                                                <option value="WIDTH">Largura</option>
-                                                <option value="FIXED">Fixo</option>
-                                            </Form.Select>
-                                        </td>
+                                    return (
+                                        <tr key={originalIndex}>
 
-                                        <td className="align-content-center text-center">R$ {Number(mat?.price || 0).toFixed(2)}</td>
+                                            <td className="align-content-center">
+                                                {mat?.name}
+                                            </td>
 
-                                        <td className="align-content-center text-center">
-                                            R$ {(item.quantity * (Number(mat?.price) || 0)).toFixed(2)}
-                                        </td>
+                                            <td className="align-content-center text-center">
+                                                <Form.Control
+                                                    type="number"
+                                                    min={0}
+                                                    value={item.quantity}
+                                                    onChange={(e) =>
+                                                        updateMaterial(originalIndex, "quantity", Number(e.target.value))
+                                                    }
+                                                />
+                                            </td>
 
-                                        <td className="align-content-center text-center">
-                                            <TrashFill
-                                                size="1.5rem"
-                                                color="red"
-                                                role="button"
-                                                onClick={() => { removeMaterial(i) }}
-                                            />
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            <td className="align-content-center text-center">
+                                                <Form.Select
+                                                    value={item.calc_type}
+                                                    onChange={(e) =>
+                                                        updateMaterial(originalIndex, "calc_type", e.target.value)
+                                                    }
+                                                >
+                                                    <option value="AREA">
+                                                        Área (L x A)
+                                                    </option>
+
+                                                    <option value="PERIMETER">
+                                                        Perímetro
+                                                    </option>
+
+                                                    <option value="HEIGHT">
+                                                        Altura
+                                                    </option>
+
+                                                    <option value="WIDTH">
+                                                        Largura
+                                                    </option>
+
+                                                    <option value="FIXED">
+                                                        Fixo
+                                                    </option>
+                                                </Form.Select>
+                                            </td>
+
+                                            <td className="align-content-center text-center">
+                                                R$ {Number(mat?.price || 0).toFixed(2)}
+                                            </td>
+
+                                            <td className="align-content-center text-center">
+                                                R$ {(Number(item.quantity) * (Number(mat?.price) || 0) * getCalcMultiplier(item.calc_type)).toFixed(2)}
+                                            </td>
+
+                                            <td className="align-content-center text-center">
+                                                <TrashFill
+                                                    size="1.5rem"
+                                                    color="red"
+                                                    role="button"
+                                                    onClick={() => {
+                                                        removeMaterial(originalIndex)
+                                                    }}
+                                                />
+                                            </td>
+
+                                        </tr>
+                                    );
+                                })}
                         </tbody>
                     </Table>
 

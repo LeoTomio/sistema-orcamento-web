@@ -94,8 +94,7 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
     onSuccess: () => {
       onSuccess();
       handleClose();
-    },
-    onError: () => toast.error("Erro ao salvar orçamento")
+    }
   })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -182,7 +181,6 @@ export default function BudgetModal({ show, onClose, selectedBudget, onSuccess }
           }))
         } as Budget;
       } catch (err) {
-        toast.error("Erro ao carregar orçamento");
         throw err;
       }
     }

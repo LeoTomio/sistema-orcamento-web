@@ -1,5 +1,6 @@
 .footer-container {
-  background: color-mix(in srgb, var(--headers-bg) 97%, white);
+  background: var(--headers-bg);
+  filter: brightness(1.2);
   color: white;
   padding: 10px 0;
   font-size: 13px;

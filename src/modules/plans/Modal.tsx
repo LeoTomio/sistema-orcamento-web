@@ -54,7 +54,6 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                     document: response.document ? formatDocument(response.document) : '',
                 };
             } catch (err) {
-                toast.error("Erro ao carregar usuário");
                 throw err;
             }
         },
@@ -106,17 +105,14 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             } else {
                 toast.success("Processando assinatura...");
             }
-
+            localStorage.removeItem("subscriptionExpired");
+            localStorage.removeItem("showExpiredMessage");
             await queryClient.invalidateQueries({
                 queryKey: ["current-subscription"]
             });
 
             onHide();
-        },
-
-        onError: () => {
-            toast.error("Erro ao iniciar assinatura");
-        },
+        }
     });
 
     const updateUserMutation = useMutation({
@@ -190,7 +186,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             await subscribeMutation.mutateAsync();
 
         } catch (err) {
-            toast.error("Erro ao processar assinatura");
+            throw err;
         }
     };
 
@@ -216,9 +212,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                             <Form.Control
                                 value={document}
                                 onChange={(e) =>
-                                    setDocument(
-                                        formatDocument(e.target.value)
-                                    )
+                                    setDocument(formatDocument(e.target.value))
                                 }
                                 placeholder="Digite seu CPF ou CNPJ"
                             />

@@ -24,10 +24,7 @@ export function RefundModal({ show, onHide, subscription }: RefundModalProps) {
             });
 
             onHide();
-        },
-        onError: (err: any) => {
-            toast.error(err?.response?.data?.message || "Erro ao solicitar estorno");
-        },
+        }
     });
 
     const { data, isLoading } = useQuery({
@@ -35,7 +32,6 @@ export function RefundModal({ show, onHide, subscription }: RefundModalProps) {
         queryFn: async () => await planService.refundPreview(subscription.id),
         enabled: !!subscription?.id && !!user?.id,
     });
-    console.log('data', data)
     const formatDate = (date?: string | Date | null) => {
         if (!date) return "";
 

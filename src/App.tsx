@@ -11,6 +11,7 @@ import Clients from "./modules/clients/Client";
 import Users from "./modules/user/User";
 import Register from "./modules/register/Register";
 import Plans from "./modules/plans/Plan";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -19,13 +20,42 @@ function App() {
 
         <Route path="/" element={<PageLayout />}>
           <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/orcamentos" element={<Budgets />} />
-          <Route path="/produtos" element={<Products />} />
-          <Route path="/clientes" element={<Clients />} />
-          <Route path="/materiais" element={<Materials />} />
-          <Route path="/usuario" element={<Users />} />
-          <Route path="/planos" element={<Plans />} />
+
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>} />
+
+          <Route path="/orcamentos" element={
+            <ProtectedRoute>
+              <Budgets />
+            </ProtectedRoute>} />
+            
+          <Route path="/produtos" element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>} />
+
+          <Route path="/clientes" element={
+            <ProtectedRoute>
+              <Clients />
+            </ProtectedRoute>} />
+
+          <Route path="/materiais" element={
+            <ProtectedRoute>
+              <Materials />
+            </ProtectedRoute>} />
+
+          <Route path="/usuario" element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>} />
+
+          <Route path="/planos" element={
+            <ProtectedRoute>
+              <Plans />
+            </ProtectedRoute>} />
+            
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastrar" element={<Register />} />

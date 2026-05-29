@@ -43,7 +43,6 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
 
     return (
         <div className="budget-items-div">
-            {/* <div> */}
             {items.map((item, idx) => (
                 <Card key={idx} className="mb-3">
                     <Card.Header className="d-flex justify-content-between align-items-center">
@@ -65,14 +64,10 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                                     type="number"
                                     step="0.1"
                                     min="1"
-                                    value={item.width ?? ""}
+                                    value={item.width}
                                     disabled={!item.hasWidth}
                                     onChange={(e) =>
-                                        updateItem(
-                                            idx,
-                                            "width",
-                                            e.target.value ? parseFloat(e.target.value) : null
-                                        )
+                                        updateItem(idx, "width", e.target.value ? parseFloat(e.target.value) : null)
                                     }
                                 />
                             </Col>
@@ -82,14 +77,10 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                                     type="number"
                                     step="0.1"
                                     min="1"
-                                    value={item.height ?? ""}
+                                    value={item.height}
                                     disabled={!item.hasHeight}
                                     onChange={(e) =>
-                                        updateItem(
-                                            idx,
-                                            "height",
-                                            e.target.value ? parseFloat(e.target.value) : null
-                                        )
+                                        updateItem(idx, "height", e.target.value ? parseFloat(e.target.value) : null)
                                     }
                                 />
                             </Col>
@@ -121,16 +112,15 @@ export default function BudgetItemCards({ items, onChangeItems, products, materi
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {calculated[idx].materials.map(
-                                            (m: any, mi: number) => (
-                                                <tr key={mi}>
-                                                    <td>{m.materialName}</td>
-                                                    <td>{m.quantity}</td>
-                                                    <td>{m.unit}</td>
-                                                    <td>R$ {formatMoney(m.unitPrice)}</td>
-                                                    <td>R$ {formatMoney(m.total)}</td>
-                                                </tr>
-                                            )
+                                        {calculated[idx].materials.map((m: any, mi: number) => (
+                                            <tr key={mi}>
+                                                <td>{m.materialName}</td>
+                                                <td>{m.quantity}</td>
+                                                <td>{m.unit}</td>
+                                                <td>R$ {formatMoney(m.unitPrice)}</td>
+                                                <td>R$ {formatMoney(m.total)}</td>
+                                            </tr>
+                                        )
                                         )}
                                     </tbody>
                                     <tfoot>

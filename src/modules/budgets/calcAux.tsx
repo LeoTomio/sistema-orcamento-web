@@ -3,19 +3,19 @@ import type { Material } from "../materials/types";
 export function calcFactor(calc_type: string, width?: number, height?: number) {
     switch (calc_type) {
         case "AREA":
-            if (width == null || height == null) throw new Error("AREA requer width e height");
+            if (width == null || height == null) throw new Error("Necessário altura e largura");
             return width * height;
 
         case "PERIMETER":
-            if (width == null || height == null) throw new Error("PERIMETER requer width e height");
+            if (width == null || height == null) throw new Error("Necessário altura e largura");
             return (width + height) * 2;
 
         case "WIDTH":
-            if (width == null) throw new Error("WIDTH requer width");
+            if (width == null) throw new Error("Necessário largura");
             return width;
 
         case "HEIGHT":
-            if (height == null) throw new Error("HEIGHT requer height");
+            if (height == null) throw new Error("Necessário altura");
             return height;
 
         case "FIXED":
@@ -32,44 +32,64 @@ function validateItem(item: any, product: any) {
     const needsHeight = product.materials.some((m: any) =>
         ["HEIGHT", "AREA", "PERIMETER"].includes(m.calc_type)
     );
-    
 
     if (needsWidth && item.width == null) {
-        throw new Error("Este produto exige largura");
+        return null;
     }
 
     if (needsHeight && item.height == null) {
-        throw new Error("Este produto exige altura");
+        return null;
     }
 }
 
 
-export function calculateQuoteItem(item: any, product: any, materialsMap: Map<string, Material>) {
+export function calculateQuoteItem(
+    item: any,
+    product: any,
+    materialsMap: Map<string, Material>
+) {
 
     validateItem(item, product);
 
     const calcMaterials = product.materials.map((pm: any) => {
+
         const mat = materialsMap.get(pm.materialId);
 
-        const factor = calcFactor(pm.calc_type, item.width, item.height);
-        const qty = pm.quantity * factor * item.quantity;
+        const factor = Number(
+            calcFactor(
+                pm.calc_type,
+                Number(item.width),
+                Number(item.height)
+            )
+        );
+
+        const qty =
+            Number(pm.quantity || 0)
+            * factor
+            * Number(item.quantity || 0);
+
+        const unitPrice =
+            Number(mat?.price || 0);
 
         return {
             materialId: pm.materialId,
             materialName: mat?.name,
             unit: mat?.unit ?? "un",
             quantity: Number(qty.toFixed(2)),
-            unitPrice: Number(mat?.price ?? 0),
-            total: Number((qty * (mat?.price ?? 0)).toFixed(2)),
+            unitPrice,
+            total: Number((qty * unitPrice).toFixed(2)),
         };
     });
 
     return {
         productName: product.name,
-        width: item.width ?? 0,
-        height: item.height ?? 0,
-        quantity: item.quantity,
+        width: Number(item.width ?? 0),
+        height: Number(item.height ?? 0),
+        quantity: Number(item.quantity ?? 0),
         materials: calcMaterials,
-        subtotal: calcMaterials.reduce((s: number, m: any) => s + m.total, 0),
+        subtotal: calcMaterials.reduce(
+            (s: number, m: any) => s + m.total,
+            0
+        ),
     };
 }
