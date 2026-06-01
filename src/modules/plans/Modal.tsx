@@ -99,9 +99,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             startPolling(response.subscriptionId);
 
             if (!response.recurring) {
-                const popup = window.open(response.checkoutUrl, "_blank");
-
-                console.log("popup", popup);
+                // window.open(response.checkoutUrl, "_blank");
                 toast.info("Aguardando confirmação do pagamento...");
             } else {
                 toast.success("Processando assinatura...");
@@ -153,6 +151,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             return;
         }
 
+        let paymentWindow: Window | null = null;
         try {
             const sanitizedDocument = onlyNumbers(document);
             const sanitizedPostalCode = onlyNumbers(postalCode);
@@ -172,6 +171,16 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 return;
             }
 
+            if (!isRecurring) {
+                paymentWindow = window.open("", "_blank");
+
+                if (!paymentWindow) {
+                    toast.error("Não foi possível abrir a janela de pagamento. Verifique se o navegador está bloqueando popups.");
+                    return;
+                }
+                console.log('payment', paymentWindow)
+            }
+
             const hasDocumentChanged = sanitizedDocument !== onlyNumbers(data?.document || "");
             const hasPostalCodeChanged = sanitizedPostalCode !== onlyNumbers(data?.postalCode || "");
             const hasNumberChanged = addressNumber !== (data?.number || "");
@@ -184,9 +193,14 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 });
             }
 
-            await subscribeMutation.mutateAsync();
+            const response = await subscribeMutation.mutateAsync();
+
+            if (!response.recurring) {
+                paymentWindow?.location.replace(response.checkoutUrl);
+            }
 
         } catch (err) {
+            paymentWindow?.close();
             throw err;
         }
     };
