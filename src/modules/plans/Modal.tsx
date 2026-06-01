@@ -99,7 +99,16 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             startPolling(response.subscriptionId);
 
             if (!response.recurring) {
-                // window.open(response.checkoutUrl, "_blank");
+
+                const paymentWindow = window.open(response.checkoutUrl, "_blank");
+
+                if (!paymentWindow) {
+                    toast.warning("Não foi possível abrir uma nova aba. Você será redirecionado para a página de pagamento.");
+
+                    window.location.href = response.checkoutUrl;
+                    return;
+                }
+ 
                 toast.info("Aguardando confirmação do pagamento...");
             } else {
                 toast.success("Processando assinatura...");
@@ -151,7 +160,6 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             return;
         }
 
-        let paymentWindow: Window | null = null;
         try {
             const sanitizedDocument = onlyNumbers(document);
             const sanitizedPostalCode = onlyNumbers(postalCode);
@@ -171,16 +179,6 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 return;
             }
 
-            if (!isRecurring) {
-                paymentWindow = window.open("", "_blank");
-
-                if (!paymentWindow) {
-                    toast.error("Não foi possível abrir a janela de pagamento. Verifique se o navegador está bloqueando popups.");
-                    return;
-                }
-                console.log('payment', paymentWindow)
-            }
-
             const hasDocumentChanged = sanitizedDocument !== onlyNumbers(data?.document || "");
             const hasPostalCodeChanged = sanitizedPostalCode !== onlyNumbers(data?.postalCode || "");
             const hasNumberChanged = addressNumber !== (data?.number || "");
@@ -193,14 +191,9 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 });
             }
 
-            const response = await subscribeMutation.mutateAsync();
-
-            if (!response.recurring) {
-                paymentWindow?.location.replace(response.checkoutUrl);
-            }
+            await subscribeMutation.mutateAsync();
 
         } catch (err) {
-            paymentWindow?.close();
             throw err;
         }
     };
