@@ -25,7 +25,7 @@ interface SubscribeModalProps {
 export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription }: SubscribeModalProps) {
     const { user } = useAuth();
     const queryClient = useQueryClient();
-    const { joinPaymentRoom, startPolling, } = usePayment();
+    const { startPolling, } = usePayment();
     const [document, setDocument] = useState("");
     const [postalCode, setPostalCode] = useState("");
     const [addressNumber, setAddressNumber] = useState("");
@@ -61,8 +61,8 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
         refetchOnWindowFocus: false,
         enabled: !!user?.id,
     });
-    const needPostalCode = !data?.postalCode
-    const needNumber = !data?.number
+    const needPostalCode = !data?.postalCode && isRecurring
+    const needNumber = !data?.number && isRecurring
 
     useEffect(() => {
         if (show && data) {
@@ -95,9 +95,8 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 } : undefined,
             }),
         onSuccess: async (response) => {
-
-            joinPaymentRoom(response.subscriptionId);
-            startPolling();
+            console.log('resp', response)
+            startPolling(response.subscriptionId);
 
             if (!response.recurring) {
                 window.open(response.checkoutUrl, "_blank");
@@ -217,55 +216,6 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                                 placeholder="Digite seu CPF ou CNPJ"
                             />
                         </Form.Group>
-                        {(needPostalCode || needNumber) && (
-                            <div className="mt-3">
-                                <h6 className="mb-3">
-                                    Informações de endereço
-                                </h6>
-
-                                <div className="d-flex gap-2">
-                                    {needPostalCode &&
-                                        <Form.Group className="mb-3 w-100">
-                                            <RequiredLabel>
-                                                CEP
-                                            </RequiredLabel>
-                                            <Form.Control
-                                                value={postalCode}
-                                                inputMode="numeric"
-                                                placeholder="00000-000"
-                                                maxLength={9}
-                                                onChange={(e) => {
-                                                    const numbers = onlyNumbers(e.target.value).slice(0, 8);
-
-                                                    const formatted = numbers.replace(
-                                                        /^(\d{5})(\d)/,
-                                                        "$1-$2"
-                                                    );
-
-                                                    setPostalCode(formatted);
-                                                }}
-                                            />
-                                        </Form.Group>}
-
-                                    {needNumber &&
-                                        <Form.Group className="mb-3 w-100">
-                                            <RequiredLabel>
-                                                Número
-                                            </RequiredLabel>
-                                            <Form.Control
-                                                value={addressNumber}
-                                                inputMode="numeric"
-                                                placeholder="123"
-                                                onChange={(e) => {
-                                                    setAddressNumber(
-                                                        e.target.value.replace(/\D/g, "")
-                                                    );
-                                                }}
-                                            />
-                                        </Form.Group>}
-                                </div>
-                            </div>
-                        )}
                         <Form.Group className="mb-3">
                             <Form.Label>
                                 Forma de pagamento
@@ -327,8 +277,57 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                             )}
                         </Form.Group>
 
+                        {(needPostalCode || needNumber) && (
+                            <div className="mt-3">
+                                <h6 className="mb-3">
+                                    Informações de endereço
+                                </h6>
+
+                                <div className="d-flex gap-2">
+                                    {needPostalCode &&
+                                        <Form.Group className="mb-3 w-100">
+                                            <RequiredLabel>
+                                                CEP
+                                            </RequiredLabel>
+                                            <Form.Control
+                                                value={postalCode}
+                                                inputMode="numeric"
+                                                placeholder="00000-000"
+                                                maxLength={9}
+                                                onChange={(e) => {
+                                                    const numbers = onlyNumbers(e.target.value).slice(0, 8);
+
+                                                    const formatted = numbers.replace(
+                                                        /^(\d{5})(\d)/,
+                                                        "$1-$2"
+                                                    );
+
+                                                    setPostalCode(formatted);
+                                                }}
+                                            />
+                                        </Form.Group>}
+
+                                    {needNumber &&
+                                        <Form.Group className="mb-3 w-100">
+                                            <RequiredLabel>
+                                                Número
+                                            </RequiredLabel>
+                                            <Form.Control
+                                                value={addressNumber}
+                                                inputMode="numeric"
+                                                placeholder="123"
+                                                onChange={(e) => {
+                                                    setAddressNumber(
+                                                        e.target.value.replace(/\D/g, "")
+                                                    );
+                                                }}
+                                            />
+                                        </Form.Group>}
+                                </div>
+                            </div>
+                        )}
                         {isRecurring && (
-                            <div className="mt-4">
+                            <div className="mt-2">
                                 <h6 className="mb-3">
                                     Dados do cartão
                                 </h6>

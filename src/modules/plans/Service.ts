@@ -11,6 +11,10 @@ const planService = {
         const response = await api.get("subscription");
         return response.data;
     },
+    async getSubscriptionById(id: string) {
+        const response = await api.get(`/subscription/${id}`);
+        return response.data;
+    },
 
 
 

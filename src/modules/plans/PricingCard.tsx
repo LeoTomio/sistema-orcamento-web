@@ -24,7 +24,7 @@ export default function PricingCards({ plans, features, onSubscribe, currentSubs
         const end = new Date(date).getTime();
         const now = new Date().getTime();
 
-        return Math.max(Math.ceil((end - now) / (1000 * 60 * 60 * 24)), 0);
+        return Math.max(Math.floor((end - now) / (1000 * 60 * 60 * 24)), 0);
     };
 
     return (
