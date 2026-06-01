@@ -99,7 +99,9 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             startPolling(response.subscriptionId);
 
             if (!response.recurring) {
-                window.open(response.checkoutUrl, "_blank");
+                const popup = window.open(response.checkoutUrl, "_blank");
+
+                console.log("popup", popup);
                 toast.info("Aguardando confirmação do pagamento...");
             } else {
                 toast.success("Processando assinatura...");
