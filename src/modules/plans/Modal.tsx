@@ -105,7 +105,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 if (!paymentWindow) {
                     toast.warning("Não foi possível abrir uma nova aba. Você será redirecionado para a página de pagamento.");
 
-                    window.location.replace(response.checkoutUrl);
+                    window.location.assign(response.checkoutUrl);
                     return;
                 }
  
