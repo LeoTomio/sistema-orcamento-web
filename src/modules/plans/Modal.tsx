@@ -98,6 +98,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
             console.log('resp', response)
             startPolling(response.subscriptionId);
 
+            onHide();
             if (!response.recurring) {
 
                 const paymentWindow = window.open(response.checkoutUrl, "_blank");
@@ -108,7 +109,7 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                     window.location.assign(response.checkoutUrl);
                     return;
                 }
- 
+
                 toast.info("Aguardando confirmação do pagamento...");
             } else {
                 toast.success("Processando assinatura...");
@@ -119,7 +120,6 @@ export function SubscribeModal({ show, onHide, selectedPlan, currentSubscription
                 queryKey: ["current-subscription"]
             });
 
-            onHide();
         }
     });
 
