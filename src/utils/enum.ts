@@ -1,3 +1,4 @@
+
 export const itemPerPageEnum = {
     budget: 4,
     product: 8,
@@ -9,3 +10,7 @@ export const cacheTime = {
     fiveMinutes: 5 * 60 * 1000
 }
 
+export const BillingTypeLabel = {
+    monthly: 'Mensal',
+    yearly: 'Anual',
+}

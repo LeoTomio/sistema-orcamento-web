@@ -16,6 +16,16 @@ const planService = {
         return response.data;
     },
 
+    async getPendingSubscription() {
+        const response = await api.get("subscription/pending");
+        return response.data;
+    },
+
+    async cancelPendingSubscription(id: string) {
+        const response = await api.patch(`subscription/${id}/cancel`);
+        return response.data;
+    },
+
 
 
     async subscribe(subscription: SubscribeRequest) {

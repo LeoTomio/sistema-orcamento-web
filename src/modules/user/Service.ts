@@ -12,8 +12,8 @@ const userService = {
         return response.data;
     },
 
-    async updateUserSubscriptionData(document: string, postalCode: string, number: string) {
-        const response = await api.patch("/user/subscription-data", { document, postalCode, number });
+    async updateUserSubscriptionData(document: string, postalCode: string, number: string, phone: string) {
+        const response = await api.patch("/user/subscription-data", { document, postalCode, number, phone });
         return response.data;
     }
 };

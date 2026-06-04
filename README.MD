@@ -68,3 +68,5 @@ npx cap sync android
 npx cap open android
 
 Sempre tem que alterar a versao do java de 21 pra 17 no capacitor.build.gradle
+
+

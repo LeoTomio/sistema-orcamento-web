@@ -1,12 +1,4 @@
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import planService from "../modules/plans/Service";
@@ -22,26 +14,16 @@ const PaymentContext = createContext({} as PaymentContextData);
 const STORAGE_SUBSCRIPTION_ID = "pendingSubscriptionId";
 const STORAGE_STARTED_AT = "paymentPollingStartedAt";
 
-export function PaymentProvider({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export function PaymentProvider({ children }: { children: React.ReactNode }) {
     const queryClient = useQueryClient();
-
     const [isPolling, setIsPolling] = useState(false);
     const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
-
     const pollingStartedAt = useRef<number | null>(null);
 
     useEffect(() => {
-        const storedSubscriptionId = localStorage.getItem(
-            STORAGE_SUBSCRIPTION_ID
-        );
+        const storedSubscriptionId = localStorage.getItem(STORAGE_SUBSCRIPTION_ID);
 
-        const storedStartedAt = localStorage.getItem(
-            STORAGE_STARTED_AT
-        );
+        const storedStartedAt = localStorage.getItem(STORAGE_STARTED_AT);
 
         if (!storedSubscriptionId || !storedStartedAt) {
             return;
@@ -64,15 +46,8 @@ export function PaymentProvider({
     const startPolling = useCallback((subscriptionId: string) => {
         const now = Date.now();
 
-        localStorage.setItem(
-            STORAGE_SUBSCRIPTION_ID,
-            subscriptionId
-        );
-
-        localStorage.setItem(
-            STORAGE_STARTED_AT,
-            String(now)
-        );
+        localStorage.setItem(STORAGE_SUBSCRIPTION_ID, subscriptionId);
+        localStorage.setItem(STORAGE_STARTED_AT, String(now));
 
         setSubscriptionId(subscriptionId);
         pollingStartedAt.current = now;
@@ -92,15 +67,7 @@ export function PaymentProvider({
         refetchIntervalInBackground: false,
         refetchInterval: (query) => {
             const status = query.state.data?.status;
-
-            const finalStatuses = [
-                "ACTIVE",
-                "SCHEDULED",
-                "CANCELED",
-                "REFUNDED",
-                "REJECTED",
-                "OVERDUE",
-            ];
+            const finalStatuses = ["ACTIVE", "SCHEDULED", "CANCELED", "REFUNDED", "REJECTED", "OVERDUE"];
 
             if (finalStatuses.includes(status)) {
                 return false;
@@ -113,13 +80,10 @@ export function PaymentProvider({
             }
 
             const elapsed = Date.now() - startedAt;
-
             const fiveMinutes = 5 * 60 * 1000;
 
             if (elapsed > fiveMinutes) {
-                toast.warning(
-                    "Tempo de verificação expirado"
-                );
+                toast.warning("Tempo de verificação expirado");
 
                 stopPolling();
 
@@ -136,51 +100,33 @@ export function PaymentProvider({
         if (!response) {
             return;
         }
-
-        const finalStatuses = [
-            "ACTIVE",
-            "SCHEDULED",
-            "CANCELED",
-            "REFUNDED",
-            "REJECTED",
-            "OVERDUE",
-        ];
+        const finalStatuses = ["ACTIVE", "SCHEDULED", "CANCELED", "REFUNDED", "REJECTED", "OVERDUE"];
 
         if (!finalStatuses.includes(response.status)) {
             return;
         }
 
         if (response.status === "ACTIVE") {
-            toast.success(
-                "Pagamento confirmado com sucesso!"
-            );
+            toast.success("Pagamento confirmado com sucesso!");
         }
-
         if (response.status === "SCHEDULED") {
-            toast.success(
-                "Pagamento aprovado e agendado!"
-            );
+            toast.success("Pagamento aprovado e agendado!");
         }
-
-        if (
-            response.status === "CANCELED" ||
-            response.status === "REJECTED" ||
-            response.status === "OVERDUE"
-        ) {
-            toast.error(
-                "Pagamento não foi aprovado"
-            );
+        if (response.status === "CANCELED") {
+            toast.dismiss(); 
+            toast.success("Pagamento cancelado com sucesso!");
         }
-
+        if (response.status === "REJECTED") {
+            toast.error("Pagamento não foi aprovado");
+        }
+        if (response.status === "OVERDUE") {
+            toast.error("Pagamento vencido");
+        }
         if (response.status === "REFUNDED") {
-            toast.warning(
-                "Pagamento estornado"
-            );
+            toast.warning("Pagamento estornado");
         }
 
-        queryClient.invalidateQueries({
-            queryKey: ["current-subscription"],
-        });
+        queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
 
         stopPolling();
     }, [
@@ -189,14 +135,11 @@ export function PaymentProvider({
         stopPolling,
     ]);
 
-    const value = useMemo(
-        () => ({
-            startPolling,
-            stopPolling,
-            isPolling,
-        }),
-        [startPolling, stopPolling, isPolling]
-    );
+    const value = useMemo(() => ({
+        startPolling,
+        stopPolling,
+        isPolling,
+    }), [startPolling, stopPolling, isPolling]);
 
     return (
         <PaymentContext.Provider value={value}>

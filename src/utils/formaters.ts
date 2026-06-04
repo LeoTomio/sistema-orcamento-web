@@ -1,3 +1,4 @@
+import { BillingTypeLabel } from './enum';
 import { onlyNumbers } from "./validators";
 
 
@@ -62,8 +63,11 @@ export function statusConverter(status: string) {
 export function formatPostalCode(value: string) {
   const numbers = value.replace(/\D/g, "").slice(0, 8);
 
-  return numbers.replace(
-    /^(\d{5})(\d)/,
-    "$1-$2"
-  );
+  return numbers.replace(/^(\d{5})(\d)/, "$1-$2");
 }
+
+
+
+export const formatBillingType = (billingType?: string) => {
+  return billingType ? BillingTypeLabel[billingType as keyof typeof BillingTypeLabel] : '';
+};

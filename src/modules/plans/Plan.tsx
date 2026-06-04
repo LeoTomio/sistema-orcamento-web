@@ -1,23 +1,31 @@
 import { Card, Col, Row } from "react-bootstrap";
 import { cacheTime } from "../../utils/enum";
 
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { SubscribeModal } from "./Modal";
+import { PendingPaymentModal } from "./PendingPaymentModal";
 import PricingCard from "./PricingCard";
 import { RefundModal } from "./RefundModel";
 import planService from "./Service";
 import type { BillingType } from "./types";
+import { toast } from "sonner";
 
 function Plans() {
-    const { user } = useAuth()
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
     const [openSubscribeModal, setOpenSubscribeModal] = useState(false);
     const [refundSubscription, setRefundSubscription] = useState<any>(null);
     const [selectedPlan, setSelectedPlan] = useState({
-        plan: { id: "", name: "", monthlyPrice: 0, yearlyPrice: 0 },
+        plan: {
+            id: "",
+            name: "",
+            monthlyPrice: 0,
+            yearlyPrice: 0,
+        },
         billing: "monthly" as BillingType,
     });
 
@@ -26,6 +34,7 @@ function Plans() {
         queryFn: () => planService.getCurrentSubscription(),
         staleTime: cacheTime.fiveMinutes,
         refetchOnWindowFocus: false,
+        enabled: !!user?.id,
     });
 
     const { data, isLoading } = useQuery({
@@ -37,12 +46,43 @@ function Plans() {
 
     const plans = data || [];
 
+    const { data: pendingSubscription, refetch: refetchPendingSubscription } = useQuery({
+        queryKey: ["pending-subscription", user?.id],
+        queryFn: () => planService.getPendingSubscription(),
+        enabled: !!user?.id,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+    });
+
+    const showPendingModal = !!pendingSubscription && pendingSubscription.isRecurring === false;
+
+    useEffect(() => {
+        const handlePageShow = async () => {
+            if (!user?.id) return;
+            await queryClient.invalidateQueries({ queryKey: ["pending-subscription"] });
+            await refetchPendingSubscription();
+        };
+        window.addEventListener("pageshow", handlePageShow);
+
+        return () => {
+            window.removeEventListener("pageshow", handlePageShow);
+        };
+    }, [user?.id, queryClient, refetchPendingSubscription]);
+
+
     const location = useLocation();
+    const expired = location.state?.expired || localStorage.getItem("showExpiredMessage") === "true";
 
-    const expired =
-        location.state?.expired ||
-        localStorage.getItem("showExpiredMessage") === "true";
+    const cancelPendingMutation = useMutation({
+        mutationFn: (id: string) =>
+            planService.cancelPendingSubscription(id),
 
+        onSuccess: async () => {
+            toast.loading("Aguardando confirmação do cancelamento...");
+            await refetchPendingSubscription();
+        },
+    });
 
     return (
         <>
@@ -99,11 +139,23 @@ function Plans() {
                     onHide={() => setOpenSubscribeModal(false)}
                 />
             }
-            {refundSubscription && (
+            {refundSubscription &&
                 <RefundModal
                     show={!!refundSubscription}
                     subscription={refundSubscription}
                     onHide={() => setRefundSubscription(null)}
+                />
+            }
+            {showPendingModal && pendingSubscription && (
+                <PendingPaymentModal
+                    show={showPendingModal}
+                    loading={cancelPendingMutation.isPending}
+                    invoiceUrl={pendingSubscription.invoiceUrl}
+                    onCancel={() =>
+                        cancelPendingMutation.mutate(
+                            pendingSubscription.id
+                        )
+                    }
                 />
             )}
         </>

@@ -12,3 +12,10 @@ export interface User {
     state: string
     postalCode: string
 } 
+
+export type UpdateUser = {
+    document: string,
+    postalCode: string,
+    number: string,
+    phone: string
+}
